@@ -20,4 +20,11 @@ def op_positivo(expresion):
             expresion.insert(i + 2, '*')
     return expresion
 
+
+def add_concat(expresion):
+    for i in range(len(expresion)):
+        if expresion[i] not in ['*', '(', '|', '.'] and expresion[i+1] != ')':
+            expresion.insert(i+1, '.')
+    return expresion
+
 #kleene siempre va aprocesar un caracter o nodo entero...
