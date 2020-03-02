@@ -1,17 +1,19 @@
 import utils as ut
 import abtreelist as ltree
-expresion = "(aa)b"
+expresion = "ab(aa)bcde"
 outp = []
 
 #should receive from outp only if expression is not empty
 #save index of (
-indexar_parentesis = 0
+indexar_parentesis = -2
 #convertir expresion a lista
 expresion = list(expresion)
 
 #primero cambiar ? y +
 expresion = ut.op_opcional(expresion)
 expresion = ut.op_positivo(expresion)
+#move stuff after parenthesis
+expresion, return_to_original = ut.move_after_parenthesis(expresion)
 expresion = ut.add_concat(expresion)
 print(expresion)
 #print(expresion)
@@ -24,15 +26,16 @@ while len(expresion) > 0 or len(outp) > 1:
             if item == '.':
                 #or and kleene should not be present
                 if '|' and '*' not in outp:
-                    if len(outp) > 2:
+                    if len(syn_tree.nodes) == 0:
                         syn_tree.add_entree(outp[indx-1], '.', outp[indx+1])
                         #outp[indx-1] = syn_tree.count
                         for i in range(3):
                             del outp[indx-1]
                     else:
-                        syn_tree.add_entree(' ', '.', outp[indx+1])
+                        print("yo", outp)
+                        syn_tree.add_entree(' ', '.', outp[1])
                         for i in range(2):
-                            del outp[indx]
+                            del outp[0]
 
 
 
@@ -42,6 +45,7 @@ while len(expresion) > 0 or len(outp) > 1:
 
             #guardar index de parentesis para pushear de regreso
             indexar_parentesis = expresion.index('(')
+
             outp = outp + expresion[expresion.index('(') + 1:expresion.index(')')]
             #print(outp)
             expresion = expresion[:expresion.index('(')] + expresion[expresion.index(')') + 1:]
@@ -54,4 +58,9 @@ while len(expresion) > 0 or len(outp) > 1:
     #break
 print("finish, expression", expresion)
 print("finish outp", outp)
+syn_tree.see_tree()
+if return_to_original > 0:
+    for i in range(return_to_original):
+        syn_tree.nodes[i], syn_tree.nodes[i+1] = syn_tree.nodes[i+1], syn_tree.nodes[i]
+        syn_tree.nodes[i].reverse()
 syn_tree.see_tree()
