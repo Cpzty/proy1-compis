@@ -38,9 +38,12 @@ def move_after_parenthesis(expresion):
             swap_piece = expresion[:index_parenthesis]
             expresion = expresion[index_parenthesis:]
             paright = expresion.index(')')
+            #extract ops from count
+            index_parenthesis = index_parenthesis - (swap_piece.count('*') + swap_piece.count('|') + swap_piece.count('\0'))
             for i in range(len(swap_piece)):
                 expresion.insert(paright+1+i, swap_piece[i])
     except:
         index_parenthesis == 0
+
     return (expresion, index_parenthesis)
 

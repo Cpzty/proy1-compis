@@ -1,6 +1,6 @@
 import utils as ut
 import abtreelist as ltree
-expresion = "ab(aa)bcde"
+expresion = "(a.b)*c*"
 outp = []
 
 #should receive from outp only if expression is not empty
@@ -36,11 +36,19 @@ while len(expresion) > 0 or len(outp) > 1:
                         syn_tree.add_entree(' ', '.', outp[1])
                         for i in range(2):
                             del outp[0]
+            #kleene first case
+            elif item == '*':
+                syn_tree.add_entree(' ', '*', outp[indx-1])
+                for i in range(2):
+                    del outp[0]
 
 
 
     else:
         print("send to outp")
+        if expresion[0] == '*':
+            syn_tree.add_entree(' ', '*', ' ')
+            del expresion[0]
         if '(' in expresion:
 
             #guardar index de parentesis para pushear de regreso
