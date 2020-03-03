@@ -1,6 +1,6 @@
 import utils as ut
 import abtreelist as ltree
-expresion = "(a.b)*c*"
+expresion = "a(ab)a(c)"
 outp = []
 
 #should receive from outp only if expression is not empty
@@ -13,34 +13,48 @@ expresion = list(expresion)
 expresion = ut.op_opcional(expresion)
 expresion = ut.op_positivo(expresion)
 #move stuff after parenthesis
-expresion, return_to_original = ut.move_after_parenthesis(expresion)
+#expresion, return_to_original = ut.move_after_parenthesis(expresion)
 expresion = ut.add_concat(expresion)
-print(expresion)
 #print(expresion)
 syn_tree = ltree.Tree()
 while len(expresion) > 0 or len(outp) > 1:
     if len(outp) > 0:
-        print(outp)
         for indx, item in enumerate(outp):
             #concat is last case
             if item == '.':
                 #or and kleene should not be present
                 if '|' and '*' not in outp:
-                    if len(syn_tree.nodes) == 0:
-                        syn_tree.add_entree(outp[indx-1], '.', outp[indx+1])
-                        #outp[indx-1] = syn_tree.count
-                        for i in range(3):
-                            del outp[indx-1]
+                    if len(outp) >= 3:
+                            print(outp)
+                            temp = outp[:]
+                            if temp[indx-1] == '.':
+                                syn_tree.add_entree(' ', '.', temp[indx + 1])
+                            else:
+                                syn_tree.add_entree(temp[indx-1], '.', temp[indx+1])
+
+                            syn_tree.see_tree()
+                            for i in range(3):
+                                del outp[0]
+                            print("t1", outp)
                     else:
-                        print("yo", outp)
-                        syn_tree.add_entree(' ', '.', outp[1])
+
+                        syn_tree.add_entree(outp[indx-1], '.', ' ')
+                        # outp[indx-1] = syn_tree.count
                         for i in range(2):
                             del outp[0]
+                        print("t2", outp)
+
+                    #else:
+                     #   print("yo", outp)
+                      #  syn_tree.add_entree(' ', '.', outp[1])
+                       # for i in range(2):
+                        #    del outp[0]
             #kleene first case
             elif item == '*':
                 syn_tree.add_entree(' ', '*', outp[indx-1])
                 for i in range(2):
                     del outp[0]
+
 
 
 
@@ -50,15 +64,20 @@ while len(expresion) > 0 or len(outp) > 1:
             syn_tree.add_entree(' ', '*', ' ')
             del expresion[0]
         if '(' in expresion:
+            if expresion[0] != '(':
+                outp = expresion[:expresion.index('(')]
+                expresion = expresion[expresion.index('('):]
+                continue
 
             #guardar index de parentesis para pushear de regreso
             indexar_parentesis = expresion.index('(')
-
             outp = outp + expresion[expresion.index('(') + 1:expresion.index(')')]
             #print(outp)
             expresion = expresion[:expresion.index('(')] + expresion[expresion.index(')') + 1:]
-            print(expresion)
+            #print(expresion)
         else:
+            print("blyat")
+            print(expresion)
             outp = expresion[:]
             expresion.clear()
 
@@ -66,9 +85,6 @@ while len(expresion) > 0 or len(outp) > 1:
     #break
 print("finish, expression", expresion)
 print("finish outp", outp)
-syn_tree.see_tree()
-if return_to_original > 0:
-    for i in range(return_to_original):
-        syn_tree.nodes[i], syn_tree.nodes[i+1] = syn_tree.nodes[i+1], syn_tree.nodes[i]
-        syn_tree.nodes[i].reverse()
+if (len(outp) == 1):
+    syn_tree.add_entree(' ', '.', outp[0])
 syn_tree.see_tree()

@@ -10,12 +10,16 @@ class Tree():
                 node = [left, op]
             self.nodes.append(node)
         else:
-            if right != ' ':
+            if left == ' ':
                 #node = [self.count, op, right]
                 node = [op, right]
-            else:
+            elif right == ' ' and left == ' ':
                 #node = [self.count, op]
                 node = [op]
+            elif right == ' ':
+                node = [left, op]
+            else:
+                node = [left, op, right]
             #self.count += 1
             self.nodes.append(node)
         #op nunca es vacia
