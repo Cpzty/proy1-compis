@@ -1,6 +1,7 @@
 import utils as ut
 import abtreelist as ltree
-expresion = "a|b"
+import Afn
+expresion = "a*"
 outp = []
 
 #should receive from outp only if expression is not empty
@@ -16,7 +17,11 @@ expresion = ut.op_positivo(expresion)
 #expresion, return_to_original = ut.move_after_parenthesis(expresion)
 expresion = ut.add_concat(expresion)
 #print(expresion)
+
+#create tree afn and other stuff
 syn_tree = ltree.Tree()
+non_automata = Afn.NFA()
+
 while len(expresion) > 0 or len(outp) > 1:
     if len(outp) > 0:
         for indx, item in enumerate(outp):
@@ -59,10 +64,18 @@ while len(expresion) > 0 or len(outp) > 1:
                 if '*' not in outp:
                     print("im here")
                     #possible lengths 3,2
-                    if len(outp) == 3:
+                    if len(outp) >= 3:
                         syn_tree.add_entree(outp[indx-1], '|', outp[indx+1])
                         for i in range(3):
                             del outp[0]
+                    else:
+                        #standarize to save all as | token
+                        if outp[0] != '|':
+                            outp[0], outp[1] = outp[1], outp[0]
+                        syn_tree.add_entree(' ', '|', outp[1])
+                        for i in range(2):
+                            del outp[0]
+
 
 
 
@@ -95,3 +108,25 @@ print("finish outp", outp)
 if (len(outp) == 1):
     syn_tree.add_entree(' ', '.', outp[0])
 syn_tree.see_tree()
+
+#create NFA
+while len(syn_tree.nodes) > 0:
+    #process kleenes that are alone first
+    for lista in syn_tree.nodes:
+        for indx, item in enumerate(lista):
+            if item == '*' and len(lista) == 3:
+                print("process alone kleene")
+                my_node = non_automata.create_node()
+                next_node = non_automata.create_node()
+                my_node.neighbors[lista[indx+1]] = [next_node.data]
+                #to grow list...
+                #some_data = my_node.neighbors.get(lista[indx+1], "")
+                #some_data.append('some other node')
+                #my_node.neighbors[lista[indx+1]] = some_data
+                non_automata.nodes.append(my_node)
+                non_automata.nodes.append(next_node)
+
+    break
+
+for nod in non_automata.nodes:
+    print(nod.data, nod.neighbors)

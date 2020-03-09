@@ -6,8 +6,14 @@ class Tree():
         if len(self.nodes) == 0:
             if right != ' ':
                 node = [left, op, right]
+            elif right == ' ' and left == ' ':
+                #node = [self.count, op]
+                node = [op]
+            elif left == ' ':
+                #node = [self.count, op, right]
+                node = [op, right]
             else:
-                node = [left, op]
+                node = [left, op, right]
             self.nodes.append(node)
         else:
             if left == ' ':
