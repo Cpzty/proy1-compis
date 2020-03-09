@@ -125,7 +125,16 @@ while len(syn_tree.nodes) > 0:
                 #my_node.neighbors[lista[indx+1]] = some_data
                 non_automata.nodes.append(my_node)
                 non_automata.nodes.append(next_node)
-
+                #insert to the beginning
+                first_node = non_automata.create_node()
+                last_node = non_automata.create_node()
+                # connect to my_node via epsilon and last node
+                first_node.neighbors['\0'] = [my_node.data, last_node.data]
+                non_automata.nodes.insert(0, first_node)
+                non_automata.nodes.append(last_node)
+                #next_node now has epsilon towards my_node and last node
+                next_node.neighbors['\0'] = [my_node.data, last_node.data]
+                print("nodes: ", non_automata.nodes)
     break
 
 for nod in non_automata.nodes:
