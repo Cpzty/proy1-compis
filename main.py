@@ -1,6 +1,6 @@
 import utils as ut
 import abtreelist as ltree
-expresion = "a(ab)a(c)"
+expresion = "a|b"
 outp = []
 
 #should receive from outp only if expression is not empty
@@ -54,6 +54,15 @@ while len(expresion) > 0 or len(outp) > 1:
                 syn_tree.add_entree(' ', '*', outp[indx-1])
                 for i in range(2):
                     del outp[0]
+            #or case
+            elif item == '|':
+                if '*' not in outp:
+                    print("im here")
+                    #possible lengths 3,2
+                    if len(outp) == 3:
+                        syn_tree.add_entree(outp[indx-1], '|', outp[indx+1])
+                        for i in range(3):
+                            del outp[0]
 
 
 
@@ -76,8 +85,6 @@ while len(expresion) > 0 or len(outp) > 1:
             expresion = expresion[:expresion.index('(')] + expresion[expresion.index(')') + 1:]
             #print(expresion)
         else:
-            print("blyat")
-            print(expresion)
             outp = expresion[:]
             expresion.clear()
 

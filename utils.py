@@ -24,7 +24,7 @@ def op_positivo(expresion):
 def add_concat(expresion):
     for j in range((len(expresion))):
         for i in range(len(expresion)-1):
-            if expresion[i] not in ['*', '(', '|', '.'] and expresion[i+1] not in [')', '*', '.']:
+            if expresion[i] not in ['*', '(', '|', '.'] and expresion[i+1] not in [')', '*', '.', '|']:
                 expresion.insert(i+1, '.')
 
     return expresion
