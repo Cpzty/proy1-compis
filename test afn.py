@@ -169,10 +169,10 @@ while len(syn_tree.nodes) > 0:
                 if 'done' in syn_tree.nodes[syn_tree.nodes.index(lista)-1] and 'done' in syn_tree.nodes[syn_tree.nodes.index(lista)+1]:
                     print("dawg")
                     first_node = non_automata.create_node()
+                    print("first node", first_node.data)
                     first_node.neighbors['\0'] = [syn_tree.nodes[syn_tree.nodes.index(lista)-1] [0], syn_tree.nodes[syn_tree.nodes.index(lista)+1] [0]]
                     last_node = non_automata.create_node()
-                    non_automata.nodes.insert(0, first_node)
-                    non_automata.nodes.append(last_node)
+                    print("last node", last_node.data)
                     for nod in non_automata.nodes:
                         if nod.data == syn_tree.nodes[syn_tree.nodes.index(lista)-1][1] or nod.data ==syn_tree.nodes[syn_tree.nodes.index(lista)+1][1]:
                             nod.neighbors['\0'] = [last_node.data]
@@ -190,9 +190,10 @@ while len(syn_tree.nodes) > 0:
                     if should_process == True:
                         if syn_tree.nodes.index(lista) != 0:
                             last_node = non_automata.create_node()
-                            non_automata.nodes[-1].neighbors[lista[0]] = [last_node.data]
+                            for nod in non_automata.nodes:
+                                if nod.data == syn_tree.nodes[syn_tree.nodes.index(lista)-1][1]:
+                                    nod.neighbors[lista[0]] = [last_node.data]
                             syn_tree.nodes[syn_tree.nodes.index(lista)] = [last_node.data, 'done']
-                            non_automata.nodes.append(last_node)
                     else:
                         continue
             elif 'done' in lista:
@@ -213,39 +214,3 @@ while len(syn_tree.nodes) > 0:
 
 for nod in non_automata.nodes:
     print(nod.data, nod.neighbors)
-
-#time for afd
-alfabeto = set()
-for nod in non_automata.nodes:
-    keys = nod.neighbors.keys()
-    for key in keys:
-        alfabeto.add(key)
-alfabeto = [x for x in alfabeto if x != '\0']
-alfabeto.sort()
-print("alfabeto: ", alfabeto)
-
-eps_initial_state = non_automata.nodes[0].neighbors.get('\0', ' ')
-for nod in non_automata.nodes:
-    for state in eps_initial_state:
-        if nod.data == state:
-            eps_initial_state[eps_initial_state.index(state)] = nod
-print("e-closure over initial state: ", eps_initial_state)
-
-conjuntos_dfa = {tuple(eps_initial_state)}
-dfa_automata = []
-some_set = dfa.Dfa_node()
-some_set.data = all_letters[universal_dfa_count]
-universal_dfa_count += 1
-dfa_automata.append(some_set)
-
-move = []
-for i in range(len(alfabeto)):
-
-    for j in range(len(eps_initial_state)):
-        move = move + eps_initial_state[j].neighbors.get(alfabeto[i], [' '])
-
-print(move)
-
-
-
-
