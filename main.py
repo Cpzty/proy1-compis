@@ -5,12 +5,36 @@ import dfa
 import string
 all_letters = string.ascii_uppercase
 universal_dfa_count = 0
+
+def eclosure(non_automata, list_states, output):
+    for i in range(20):
+
+        for nod in non_automata.nodes:
+            for state in list_states:
+                if nod.data == state:
+                    list_states[list_states.index(state)] = nod
+
+        for nod in non_automata.nodes:
+            for state in list_states:
+                if type(state) != str:
+                    local_set = set(state.neighbors.get('\0', ' '))
+                #print("local set: ", local_set)
+                    output.update(local_set)
+        list_states = list(output)
+
+    output = [x for x in output if x != ' ']
+    if non_automata.nodes[0].data not in output:
+        output.insert(0, non_automata.nodes[0].data)
+    print("e-closure over list of states: ", output)
+
+
 def convert_data_to_nodes(listx):
     for nod in non_automata.nodes:
         for state in listx:
             if nod.data == state:
                 listx[listx.index(state)] = nod
     return listx
+
 
 def kleen_1char():
     my_node = non_automata.create_node()
@@ -232,7 +256,6 @@ for i in range(20):
     for nod in non_automata.nodes:
         for state in eps_initial_state:
             if nod.data == state:
-                print(state)
                 eps_initial_state[eps_initial_state.index(state)] = nod
 
     for nod in non_automata.nodes:
@@ -243,8 +266,41 @@ for i in range(20):
                 set_eps.update(local_set)
     eps_initial_state = list(set_eps)
 
-set_eps = {x for x in set_eps if x != ' '}
+set_eps = [x for x in set_eps if x != ' ']
+if non_automata.nodes[0].data not in set_eps:
+    set_eps.insert(0, non_automata.nodes[0].data)
 print("e-closure over initial state: ", set_eps)
 
+for nod in non_automata.nodes:
+    for state in set_eps:
+        if nod.data == state:
+            set_eps[set_eps.index(state)] = nod
 
+dfa_set = set()
+dfa_sets_move = []
+for letra in alfabeto:
+    dfa_set.clear()
+    for estado in set_eps:
+        local_dfa_set = estado.neighbors.get(letra, ' ')
+        dfa_set.update(local_dfa_set)
+    dfa_set = {x for x in dfa_set if x != ' '}
+    #dfa_sets_move.append([letra] + list(dfa_set))
+    dfa_sets_move.append(list(dfa_set))
+print(dfa_sets_move)
 
+dfa_set_completo = set()
+dfa_sets_completos = []
+#create new sets from making gets
+for indx, item in enumerate(non_automata.nodes):
+    for indx2, item2 in enumerate(dfa_sets_move):
+        for indx3, item3 in enumerate(item2):
+            if item.data == item3:
+                dfa_sets_move[indx2][indx3] = item
+
+print(dfa_sets_move)
+
+patch_subsets = []
+for i in range(len(dfa_sets_move)):
+    patch_subsets.append(dfa_sets_move[i][0])
+print(patch_subsets)
+#aplicar e-closure

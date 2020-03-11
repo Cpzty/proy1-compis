@@ -10,4 +10,3 @@ class Dfa_node():
             self.transitions[token] = ' '
 
 
-
