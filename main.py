@@ -225,27 +225,26 @@ alfabeto.sort()
 print("alfabeto: ", alfabeto)
 
 eps_initial_state = non_automata.nodes[0].neighbors.get('\0', ' ')
-for nod in non_automata.nodes:
-    for state in eps_initial_state:
-        if nod.data == state:
-            eps_initial_state[eps_initial_state.index(state)] = nod
-print("e-closure over initial state: ", eps_initial_state)
+print(eps_initial_state)
+set_eps = set(eps_initial_state)
+for i in range(20):
 
-conjuntos_dfa = {tuple(eps_initial_state)}
-dfa_automata = []
-some_set = dfa.Dfa_node()
-some_set.data = all_letters[universal_dfa_count]
-universal_dfa_count += 1
-dfa_automata.append(some_set)
+    for nod in non_automata.nodes:
+        for state in eps_initial_state:
+            if nod.data == state:
+                print(state)
+                eps_initial_state[eps_initial_state.index(state)] = nod
 
-move = []
-for i in range(len(alfabeto)):
+    for nod in non_automata.nodes:
+        for state in eps_initial_state:
+            if type(state) != str:
+                local_set = set(state.neighbors.get('\0', ' '))
+            #print("local set: ", local_set)
+                set_eps.update(local_set)
+    eps_initial_state = list(set_eps)
 
-    for j in range(len(eps_initial_state)):
-        move = move + eps_initial_state[j].neighbors.get(alfabeto[i], [' '])
-
-print(move)
-
+set_eps = {x for x in set_eps if x != ' '}
+print("e-closure over initial state: ", set_eps)
 
 
 
