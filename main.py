@@ -1,6 +1,16 @@
 import utils as ut
 import abtreelist as ltree
 import Afn
+import dfa
+import string
+all_letters = string.ascii_uppercase
+universal_dfa_count = 0
+def convert_data_to_nodes(listx):
+    for nod in non_automata.nodes:
+        for state in listx:
+            if nod.data == state:
+                listx[listx.index(state)] = nod
+    return listx
 
 def kleen_1char():
     my_node = non_automata.create_node()
@@ -163,7 +173,7 @@ while len(syn_tree.nodes) > 0:
                     last_node = non_automata.create_node()
                     for nod in non_automata.nodes:
                         if nod.data == syn_tree.nodes[syn_tree.nodes.index(lista)-1][1] or nod.data ==syn_tree.nodes[syn_tree.nodes.index(lista)+1][1]:
-                            nod.neighbors['\0'] = last_node.data
+                            nod.neighbors['\0'] = [last_node.data]
                     syn_tree.nodes[syn_tree.nodes.index(lista)] = ["done"]
                 else:
                     print("hey there")
@@ -180,7 +190,7 @@ while len(syn_tree.nodes) > 0:
                             last_node = non_automata.create_node()
                             for nod in non_automata.nodes:
                                 if nod.data == syn_tree.nodes[syn_tree.nodes.index(lista)-1][1]:
-                                    nod.neighbors[lista[0]] = last_node.data
+                                    nod.neighbors[lista[0]] = [last_node.data]
                             syn_tree.nodes[syn_tree.nodes.index(lista)] = [last_node.data, 'done']
                     else:
                         continue
@@ -192,7 +202,7 @@ while len(syn_tree.nodes) > 0:
                             count += 1
                 if count == len(syn_tree.nodes):
                     #clear list causing a break
-                    print("making sure this broke loop")
+                    #print("making sure this broke loop")
                     syn_tree.nodes.clear()
                 else:
                     continue
@@ -202,3 +212,32 @@ while len(syn_tree.nodes) > 0:
 
 for nod in non_automata.nodes:
     print(nod.data, nod.neighbors)
+
+#time for afd
+alfabeto = set()
+for nod in non_automata.nodes:
+    keys = nod.neighbors.keys()
+    for key in keys:
+        alfabeto.add(key)
+alfabeto = [x for x in alfabeto if x != '\0']
+alfabeto.sort()
+print("alfabeto: ", alfabeto)
+
+eps_initial_state = non_automata.nodes[0].neighbors.get('\0', ' ')
+for nod in non_automata.nodes:
+    for state in eps_initial_state:
+        if nod.data == state:
+            eps_initial_state[eps_initial_state.index(state)] = nod
+#print("e-closure over initial state: ", eps_initial_state)
+
+conjuntos_dfa = {tuple(eps_initial_state)}
+dfa_automata = []
+some_set = dfa.Dfa_node()
+some_set.data = all_letters[universal_dfa_count]
+universal_dfa_count += 1
+dfa_automata.append(some_set)
+
+
+
+
+
