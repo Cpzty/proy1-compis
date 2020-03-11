@@ -4,8 +4,8 @@ class Tree():
         self.count = 0
     def add_entree(self, left, op, right):
         if len(self.nodes) == 0:
-            if right != ' ':
-                node = [left, op, right]
+            if right == ' ':
+                node = [left, op]
             elif right == ' ' and left == ' ':
                 #node = [self.count, op]
                 node = [op]
@@ -16,12 +16,12 @@ class Tree():
                 node = [left, op, right]
             self.nodes.append(node)
         else:
-            if left == ' ':
-                #node = [self.count, op, right]
-                node = [op, right]
-            elif right == ' ' and left == ' ':
+            if right == ' ' and left == ' ':
                 #node = [self.count, op]
                 node = [op]
+            elif left == ' ':
+                #node = [self.count, op, right]
+                node = [op, right]
             elif right == ' ':
                 node = [left, op]
             else:

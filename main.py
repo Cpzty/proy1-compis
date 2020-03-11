@@ -1,7 +1,28 @@
 import utils as ut
 import abtreelist as ltree
 import Afn
-expresion = "a*"
+
+def kleen_1char():
+    my_node = non_automata.create_node()
+    next_node = non_automata.create_node()
+    my_node.neighbors[lista[indx + 1]] = [next_node.data]
+    # to grow list...
+    # some_data = my_node.neighbors.get(lista[indx+1], "")
+    # some_data.append('some other node')
+    # my_node.neighbors[lista[indx+1]] = some_data
+    non_automata.nodes.append(my_node)
+    non_automata.nodes.append(next_node)
+    # insert to the beginning
+    first_node = non_automata.create_node()
+    last_node = non_automata.create_node()
+    # connect to my_node via epsilon and last node
+    first_node.neighbors['\0'] = [my_node.data, last_node.data]
+    non_automata.nodes.insert(0, first_node)
+    non_automata.nodes.append(last_node)
+    # next_node now has epsilon towards my_node and last node
+    next_node.neighbors['\0'] = [my_node.data, last_node.data]
+    print("nodes: ", non_automata.nodes)
+expresion = "(a*|b*)c"
 outp = []
 
 #should receive from outp only if expression is not empty
@@ -56,9 +77,21 @@ while len(expresion) > 0 or len(outp) > 1:
                         #    del outp[0]
             #kleene first case
             elif item == '*':
-                syn_tree.add_entree(' ', '*', outp[indx-1])
+                #send concat first
+                if len(outp) == 4 and outp[1] == '.':
+                    syn_tree.add_entree(' ', '.', outp[0])
+                    for i in range(2):
+                        del outp[0]
+                elif len(outp) == 5 and outp[2] == '|':
+                    syn_tree.add_entree(' ', outp[1], outp[0])
+                    syn_tree.add_entree(' ', outp[2], ' ')
+                    for i in range(3):
+                        del outp[0]
+                syn_tree.add_entree(' ', '*', outp[-2])
+                print("outp", outp)
                 for i in range(2):
-                    del outp[0]
+                    del outp[-1]
+                print("outp", outp)
             #or case
             elif item == '|':
                 if '*' not in outp:
@@ -110,32 +143,62 @@ if (len(outp) == 1):
 syn_tree.see_tree()
 
 #create NFA
+clone_tree = syn_tree.nodes[:]
+print("clone tree: ", clone_tree)
 while len(syn_tree.nodes) > 0:
     #process kleenes that are alone first
     for lista in syn_tree.nodes:
         for indx, item in enumerate(lista):
-            if item == '*' and len(lista) == 3:
+            if item == '*' and len(lista) == 2:
                 print("process alone kleene")
-                my_node = non_automata.create_node()
-                next_node = non_automata.create_node()
-                my_node.neighbors[lista[indx+1]] = [next_node.data]
-                #to grow list...
-                #some_data = my_node.neighbors.get(lista[indx+1], "")
-                #some_data.append('some other node')
-                #my_node.neighbors[lista[indx+1]] = some_data
-                non_automata.nodes.append(my_node)
-                non_automata.nodes.append(next_node)
-                #insert to the beginning
-                first_node = non_automata.create_node()
-                last_node = non_automata.create_node()
-                # connect to my_node via epsilon and last node
-                first_node.neighbors['\0'] = [my_node.data, last_node.data]
-                non_automata.nodes.insert(0, first_node)
-                non_automata.nodes.append(last_node)
-                #next_node now has epsilon towards my_node and last node
-                next_node.neighbors['\0'] = [my_node.data, last_node.data]
-                print("nodes: ", non_automata.nodes)
-    break
+                kleen_1char()
+                syn_tree.nodes[syn_tree.nodes.index(lista)] = [non_automata.nodes[0].data , non_automata.nodes[-1].data, 'done']
+                print(syn_tree.nodes)
+            elif item == '|' and len(lista) == 1:
+                print("im here")
+                if 'done' in syn_tree.nodes[syn_tree.nodes.index(lista)-1] and 'done' in syn_tree.nodes[syn_tree.nodes.index(lista)+1]:
+                    print("dawg")
+                    first_node = non_automata.create_node()
+                    first_node.neighbors['\0'] = [syn_tree.nodes[syn_tree.nodes.index(lista)-1] [0], syn_tree.nodes[syn_tree.nodes.index(lista)+1] [0]]
+                    last_node = non_automata.create_node()
+                    for nod in non_automata.nodes:
+                        if nod.data == syn_tree.nodes[syn_tree.nodes.index(lista)-1][1] or nod.data ==syn_tree.nodes[syn_tree.nodes.index(lista)+1][1]:
+                            nod.neighbors['\0'] = last_node.data
+                    syn_tree.nodes[syn_tree.nodes.index(lista)] = ["done"]
+                else:
+                    print("hey there")
+            #concat case
+            elif item == '.':
+                print(syn_tree.nodes)
+                if len(lista) == 2:
+                    should_process = True
+                    for i in range(syn_tree.nodes.index(lista)):
+                        if 'done' not in syn_tree.nodes[i]:
+                            should_process = False
+                    if should_process == True:
+                        if syn_tree.nodes.index(lista) != 0:
+                            last_node = non_automata.create_node()
+                            for nod in non_automata.nodes:
+                                if nod.data == syn_tree.nodes[syn_tree.nodes.index(lista)-1][1]:
+                                    nod.neighbors[lista[0]] = last_node.data
+                            syn_tree.nodes[syn_tree.nodes.index(lista)] = [last_node.data, 'done']
+                    else:
+                        continue
+            elif 'done' in lista:
+                count = 0
+                for listx in syn_tree.nodes:
+                    for itemx in listx:
+                        if itemx == 'done':
+                            count += 1
+                if count == len(syn_tree.nodes):
+                    #clear list causing a break
+                    print("making sure this broke loop")
+                    syn_tree.nodes.clear()
+                else:
+                    continue
+    #break
+
+
 
 for nod in non_automata.nodes:
     print(nod.data, nod.neighbors)
