@@ -6,9 +6,38 @@ import string
 all_letters = string.ascii_uppercase
 universal_dfa_count = 0
 
-def eclosure(non_automata, list_states, output):
-    for i in range(20):
+#esta version hace una correccion al original
+def eclosure2(non_automata, list_states, output):
+    while True:
+        old_count = len(output)
+        for nod in non_automata.nodes:
+            for state in list_states:
+                if nod.data == state:
+                    list_states[list_states.index(state)] = nod
 
+        for nod in non_automata.nodes:
+            for state in list_states:
+                if type(state) != str:
+                    local_set = set(state.neighbors.get('\0', ' '))
+                    local_set = list(local_set)
+                    local_set.sort()
+                    local_set = set(local_set)
+                #print("local set: ", local_set)
+                    output.update(local_set)
+        list_states = list(output)
+        new_count = len(output)
+        if old_count == new_count:
+            break
+
+    output = [x for x in output if x != ' ']
+    if non_automata.nodes[0].data not in output:
+        output.insert(0, non_automata.nodes[0].data)
+    return output
+
+
+def eclosure(non_automata, list_states, output):
+    while True:
+        old_count = len(output)
         for nod in non_automata.nodes:
             for state in list_states:
                 if nod.data == state:
@@ -21,12 +50,14 @@ def eclosure(non_automata, list_states, output):
                 #print("local set: ", local_set)
                     output.update(local_set)
         list_states = list(output)
+        new_count = len(output)
+        if old_count == new_count:
+            break
 
     output = [x for x in output if x != ' ']
     if non_automata.nodes[0].data not in output:
         output.insert(0, non_automata.nodes[0].data)
-    print("e-closure over list of states: ", output)
-
+    return output
 
 def convert_data_to_nodes(listx):
     for nod in non_automata.nodes:
@@ -251,30 +282,15 @@ print("alfabeto: ", alfabeto)
 eps_initial_state = non_automata.nodes[0].neighbors.get('\0', ' ')
 print(eps_initial_state)
 set_eps = set(eps_initial_state)
-for i in range(20):
-
-    for nod in non_automata.nodes:
-        for state in eps_initial_state:
-            if nod.data == state:
-                eps_initial_state[eps_initial_state.index(state)] = nod
-
-    for nod in non_automata.nodes:
-        for state in eps_initial_state:
-            if type(state) != str:
-                local_set = set(state.neighbors.get('\0', ' '))
-            #print("local set: ", local_set)
-                set_eps.update(local_set)
-    eps_initial_state = list(set_eps)
-
-set_eps = [x for x in set_eps if x != ' ']
-if non_automata.nodes[0].data not in set_eps:
-    set_eps.insert(0, non_automata.nodes[0].data)
-print("e-closure over initial state: ", set_eps)
-
-for nod in non_automata.nodes:
-    for state in set_eps:
-        if nod.data == state:
-            set_eps[set_eps.index(state)] = nod
+#eclosure
+set_eps = eclosure(non_automata, eps_initial_state, set_eps)
+set_eps.sort()
+print("e-closure over initial states: ", set_eps)
+store_all_sets = set()
+store_all_sets.add(tuple(set_eps))
+print(store_all_sets)
+set_eps = convert_data_to_nodes(set_eps)
+print("converted: ", set_eps)
 
 dfa_set = set()
 dfa_sets_move = []
@@ -286,7 +302,7 @@ for letra in alfabeto:
     dfa_set = {x for x in dfa_set if x != ' '}
     #dfa_sets_move.append([letra] + list(dfa_set))
     dfa_sets_move.append(list(dfa_set))
-print(dfa_sets_move)
+print("dfa sets move: ", dfa_sets_move)
 
 dfa_set_completo = set()
 dfa_sets_completos = []
@@ -298,9 +314,13 @@ for indx, item in enumerate(non_automata.nodes):
                 dfa_sets_move[indx2][indx3] = item
 
 print(dfa_sets_move)
-
-patch_subsets = []
-for i in range(len(dfa_sets_move)):
-    patch_subsets.append(dfa_sets_move[i][0])
-print(patch_subsets)
 #aplicar e-closure
+for indx, statelist in enumerate(dfa_sets_move):
+    #la segunda corrida y posterior esto se vuelve una lista y explota
+    dfa_set_completo.clear()
+    dfa_set_completo = set(dfa_set_completo)
+    dfa_set_completo = eclosure2(non_automata, statelist, dfa_set_completo)
+    dfa_set_completo.sort()
+    dfa_sets_completos.append(dfa_set_completo[:])
+
+print("full sets: ", dfa_sets_completos)
