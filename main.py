@@ -4,8 +4,16 @@ import Afn
 import dfa
 import string
 from copy import copy
+import directdfa
+
 all_letters = string.ascii_uppercase
 universal_dfa_count = 0
+
+def fnullable(element):
+    if element == '*':
+        return True
+    elif element not in ['*', '|', '.']:
+        return False
 
 def subset_move(subset):
     dfa_set = set()
@@ -104,7 +112,7 @@ def kleen_1char():
     non_automata.nodes.append(last_node)
     # next_node now has epsilon towards my_node and last node
     next_node.neighbors['\0'] = [my_node.data, last_node.data]
-    print("nodes: ", non_automata.nodes)
+    #print("nodes: ", non_automata.nodes)
 expresion = "(a*|b*)c"
 outp = []
 
@@ -134,7 +142,7 @@ while len(expresion) > 0 or len(outp) > 1:
                 #or and kleene should not be present
                 if '|' and '*' not in outp:
                     if len(outp) >= 3:
-                            print(outp)
+                            #print(outp)
                             temp = outp[:]
                             if temp[indx-1] == '.':
                                 syn_tree.add_entree(' ', '.', temp[indx + 1])
@@ -144,14 +152,14 @@ while len(expresion) > 0 or len(outp) > 1:
                             syn_tree.see_tree()
                             for i in range(3):
                                 del outp[0]
-                            print("t1", outp)
+                            #print("t1", outp)
                     else:
 
                         syn_tree.add_entree(outp[indx-1], '.', ' ')
                         # outp[indx-1] = syn_tree.count
                         for i in range(2):
                             del outp[0]
-                        print("t2", outp)
+                        #print("t2", outp)
 
                     #else:
                      #   print("yo", outp)
@@ -171,14 +179,14 @@ while len(expresion) > 0 or len(outp) > 1:
                     for i in range(3):
                         del outp[0]
                 syn_tree.add_entree(' ', '*', outp[-2])
-                print("outp", outp)
+           #     print("outp", outp)
                 for i in range(2):
                     del outp[-1]
-                print("outp", outp)
+         #       print("outp", outp)
             #or case
             elif item == '|':
                 if '*' not in outp:
-                    print("im here")
+          #          print("im here")
                     #possible lengths 3,2
                     if len(outp) >= 3:
                         syn_tree.add_entree(outp[indx-1], '|', outp[indx+1])
@@ -197,7 +205,7 @@ while len(expresion) > 0 or len(outp) > 1:
 
 
     else:
-        print("send to outp")
+        #print("send to outp")
         if expresion[0] == '*':
             syn_tree.add_entree(' ', '*', ' ')
             del expresion[0]
@@ -219,30 +227,29 @@ while len(expresion) > 0 or len(outp) > 1:
 
         #print(expresion)
     #break
-print("finish, expression", expresion)
-print("finish outp", outp)
+#print("finish, expression", expresion)
+#print("finish outp", outp)
 if (len(outp) == 1):
     syn_tree.add_entree(' ', '.', outp[0])
 syn_tree.see_tree()
 
 #create NFA
 clone_tree = syn_tree.nodes[:]
-print("clone tree: ", clone_tree)
+#print("clone tree: ", clone_tree)
 while len(syn_tree.nodes) > 0:
     #process kleenes that are alone first
     for lista in syn_tree.nodes:
         for indx, item in enumerate(lista):
             if item == '*' and len(lista) == 2:
-                print("process alone kleene")
+               # print("process alone kleene")
                 kleen_1char()
                 syn_tree.nodes[syn_tree.nodes.index(lista)] = [non_automata.nodes[0].data , non_automata.nodes[-1].data, 'done']
-                print(syn_tree.nodes)
+                #print(syn_tree.nodes)
             elif item == '|' and len(lista) == 1:
-                print("im here")
+                #print("im here")
                 if 'done' in syn_tree.nodes[syn_tree.nodes.index(lista)-1] and 'done' in syn_tree.nodes[syn_tree.nodes.index(lista)+1]:
-                    print("dawg")
                     first_node = non_automata.create_node()
-                    first_node.neighbors['\0'] = [syn_tree.nodes[syn_tree.nodes.index(lista)-1] [0], syn_tree.nodes[syn_tree.nodes.index(lista)+1] [0]]
+                    first_node.neighbors['\0'] = [copy(syn_tree.nodes[syn_tree.nodes.index(lista)-1] [0]), copy(syn_tree.nodes[syn_tree.nodes.index(lista)+1] [0])]
                     last_node = non_automata.create_node()
                     non_automata.nodes.insert(0, first_node)
                     non_automata.nodes.append(last_node)
@@ -251,10 +258,10 @@ while len(syn_tree.nodes) > 0:
                             nod.neighbors['\0'] = [last_node.data]
                     syn_tree.nodes[syn_tree.nodes.index(lista)] = ["done"]
                 else:
-                    print("hey there")
+                   pass
             #concat case
             elif item == '.':
-                print(syn_tree.nodes)
+                #print(syn_tree.nodes)
                 if len(lista) == 2:
                     should_process = True
                     for i in range(syn_tree.nodes.index(lista)):
@@ -284,8 +291,6 @@ while len(syn_tree.nodes) > 0:
 
 
 
-for nod in non_automata.nodes:
-    print(nod.data, nod.neighbors)
 
 #time for afd
 alfabeto = set()
@@ -295,21 +300,21 @@ for nod in non_automata.nodes:
         alfabeto.add(key)
 alfabeto = [x for x in alfabeto if x != '\0']
 alfabeto.sort()
-print("alfabeto: ", alfabeto)
+#print("alfabeto: ", alfabeto)
 
 eps_initial_state = non_automata.nodes[0].neighbors.get('\0', ' ')
-print(eps_initial_state)
+#print(eps_initial_state)
 set_eps = set(eps_initial_state)
 #eclosure
 set_eps = eclosure(non_automata, eps_initial_state, set_eps)
 set_eps.sort()
 A_node = dfa_automata.create_node(set_eps)
-print("e-closure over initial states: ", set_eps)
+#print("e-closure over initial states: ", set_eps)
 store_all_sets = []
 store_all_sets.append((set_eps[:]))
-print(store_all_sets)
+#print(store_all_sets)
 set_eps = convert_data_to_nodes(set_eps)
-print("converted: ", set_eps)
+#print("converted: ", set_eps)
 
 first_node_patch = 0
 already_processed = []
@@ -323,7 +328,7 @@ while True:
     clone_dfa_sets_move = []
     for i in range(len(dfa_sets_move)):
         clone_dfa_sets_move.append(dfa_sets_move[i][:])
-    print("dfa sets move: ", clone_dfa_sets_move)
+ #   print("dfa sets move: ", clone_dfa_sets_move)
     dfa_set_completo = set()
     dfa_sets_completos = []
     #create new sets from making gets
@@ -356,7 +361,7 @@ while True:
 
         set_eps = copy(dfa_sets_completos[0])
         set_eps = convert_data_to_nodes(set_eps)
-        print("set_eps: ", set_eps)
+  #      print("set_eps: ", set_eps)
 
 
     else:
@@ -378,7 +383,7 @@ while True:
 
     set_eps = copy(store_all_sets[first_node_patch])
     set_eps = convert_data_to_nodes(set_eps)
-    print("set_eps: ", set_eps)
+   # print("set_eps: ", set_eps)
 
     first_node_patch += 1
     new_len = len(store_all_sets)
@@ -390,9 +395,116 @@ while True:
 
 #clean all sets set
 store_all_sets = [x for x in store_all_sets if len(x) > 0]
-print(store_all_sets)
+#print(store_all_sets)
 if len(dfa_automata.nodes) != len(store_all_sets):
     last_node = dfa_automata.create_node(store_all_sets[-1][0])
     dfa_automata.nodes.append(last_node)
 
+#weird fix
+fix_nfa = non_automata.nodes[0].neighbors.get('\0', ' ')
+for i in range(len(fix_nfa)):
+    fix_nfa[i] = fix_nfa[i].data
+non_automata.nodes[0].neighbors['\0'] = fix_nfa
 
+#dfa directo
+should_swap = []
+
+#clone_tree.append(['\0', '.'])
+for i in range(len(clone_tree)):
+    if '\0' in clone_tree[i]:
+        clone_tree.remove(clone_tree[i])
+        if '|' in clone_tree[i - 1] and len(clone_tree[i-1]) ==1:
+            clone_tree.remove(clone_tree[i-1])
+    if '*' or '.' in clone_tree[i] and len(clone_tree[i]) ==2:
+        clone_tree[i].reverse()
+
+for i in range(len(clone_tree)):
+    if '|' in clone_tree[i] and len(clone_tree[i]) ==1:
+        should_swap.append(True)
+    else:
+        should_swap.append(False)
+
+for i in range(len(clone_tree)):
+    if should_swap[i] == True:
+        clone_tree[i], clone_tree[i+1] = clone_tree[i+1], clone_tree[i]
+
+print("clone tree: ", clone_tree)
+clone_tree2 = []
+for i in range(len(clone_tree)):
+    clone_tree2.append(copy(clone_tree[i]))
+#create nullable
+flat_list = []
+nullable_list =[]
+for sublist in clone_tree:
+    for item in sublist:
+        flat_list.append(item)
+
+for indx, sublist in enumerate(clone_tree):
+    for indx2, item in enumerate(sublist):
+        if item not in ['|', '.']:
+            clone_tree[indx][indx2] = fnullable(clone_tree[indx][indx2])
+#assume everything except or and concat are processed
+for indx, sublist in enumerate(clone_tree):
+    for indx2, item in enumerate(sublist):
+        if item == '|':
+            if True in clone_tree[indx-2] or True in clone_tree[indx-1]:
+                clone_tree[indx][indx2] = True
+            else:
+                clone_tree[indx][indx2] = False
+
+        elif item == '.':
+            if True in clone_tree[indx-1] and True in clone_tree[indx]:
+                clone_tree[indx][indx2] = True
+            else:
+                clone_tree[indx][indx2] = False
+
+
+
+print(clone_tree)
+print(clone_tree2)
+clone_tree3 = []
+for i in range(len(clone_tree2)):
+    clone_tree3.append(copy(clone_tree2[i]))
+
+for indx, sublist in enumerate(clone_tree2):
+    for indx2, item in enumerate(sublist):
+        if item == '*' and len(sublist) == 2:
+            clone_tree2[indx][indx2] = clone_tree2[indx][indx2-1]
+        elif item == '.' and len(sublist) == 3:
+            clone_tree2[indx][indx2] = clone_tree2[indx][indx2-1]
+
+for indx, sublist in enumerate(clone_tree2):
+    for indx2, item in enumerate(sublist):
+        if item == '|' and len(sublist)== 1:
+            clone_tree2[indx] = [clone_tree2[indx-2][-1], clone_tree2[indx-1][-1]]
+        elif item == '.':
+            print("sup")
+            if True in clone_tree[indx-1]:
+                clone_tree2[indx] = clone_tree2[indx-1] + [clone_tree2[indx][-1]]
+            else:
+                clone_tree2[indx] = clone_tree2[indx-1]
+print(clone_tree2)
+print(clone_tree3)
+#ddfa
+ddfa = directdfa.Dfa()
+for i in range(len(clone_tree2)):
+    if '*' in clone_tree3[i]:
+        some_node = ddfa.create_node()
+        some_node.neighbors[clone_tree2[i][-1]] = some_node.data
+        ddfa.nodes.append(some_node)
+
+    elif '|' in clone_tree3[i]:
+        #some_node.neighbors[clone_tree2[i][-1]] = clone_tree2[i][-1].upper()
+        for nod in ddfa.nodes:
+            if nod.data == clone_tree2[i][-2].upper():
+                nod.neighbors[clone_tree2[i][-1]] = clone_tree2[i][-1].upper()
+
+    elif '.' in clone_tree3[i]:
+        some_node = ddfa.create_node()
+        ddfa.nodes.append(some_node)
+        for j in range(len(clone_tree2[i])-1):
+            if ddfa.nodes[j].data == clone_tree2[i][j].upper():
+                ddfa.nodes[j].neighbors[clone_tree2[i][-1]] = clone_tree2[i][-1].upper()
+for nod in ddfa.nodes:
+    print("data: ", nod.data)
+    print("neighbors: ", nod.neighbors)
