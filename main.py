@@ -3,6 +3,7 @@ import abtreelist as ltree
 import Afn
 import dfa
 import string
+from copy import copy
 all_letters = string.ascii_uppercase
 universal_dfa_count = 0
 
@@ -32,11 +33,13 @@ def eclosure2(non_automata, list_states, output):
             for state in list_states:
                 if type(state) != str:
                     local_set = set(state.neighbors.get('\0', ' '))
+                    #patch
+
                     local_set = list(local_set)
                     local_set.sort()
                     # check for last state
-                    if state.data == non_automata.nodes[-1].data:
-                        local_set.append(state.data)
+                    #if state.data == non_automata.nodes[-1].data:
+                        #local_set.append(state.data)
                     local_set = set(local_set)
                 #print("local set: ", local_set)
                     output.update(local_set)
@@ -302,34 +305,94 @@ set_eps = eclosure(non_automata, eps_initial_state, set_eps)
 set_eps.sort()
 A_node = dfa_automata.create_node(set_eps)
 print("e-closure over initial states: ", set_eps)
-store_all_sets = set()
-store_all_sets.add(tuple(set_eps))
+store_all_sets = []
+store_all_sets.append((set_eps[:]))
 print(store_all_sets)
 set_eps = convert_data_to_nodes(set_eps)
 print("converted: ", set_eps)
 
+first_node_patch = 0
+already_processed = []
+#max_count_patch = 0
 #loop here
-dfa_sets_move = subset_move(set_eps)
-print("dfa sets move: ", dfa_sets_move)
+while True:
+    #print("set eps: ", set_eps)
+    old_len = len(store_all_sets)
+    dfa_sets_move = subset_move(set_eps)
+   # print("dfa sets move: ", dfa_sets_move)
+    clone_dfa_sets_move = []
+    for i in range(len(dfa_sets_move)):
+        clone_dfa_sets_move.append(dfa_sets_move[i][:])
+    print("dfa sets move: ", clone_dfa_sets_move)
+    dfa_set_completo = set()
+    dfa_sets_completos = []
+    #create new sets from making gets
+    for indx, item in enumerate(non_automata.nodes):
+        for indx2, item2 in enumerate(dfa_sets_move):
+            for indx3, item3 in enumerate(item2):
+                if item.data == item3:
+                    dfa_sets_move[indx2][indx3] = item
 
-dfa_set_completo = set()
-dfa_sets_completos = []
-#create new sets from making gets
-for indx, item in enumerate(non_automata.nodes):
-    for indx2, item2 in enumerate(dfa_sets_move):
-        for indx3, item3 in enumerate(item2):
-            if item.data == item3:
-                dfa_sets_move[indx2][indx3] = item
+
+    #aplicar e-closure
+    for indx, statelist in enumerate(dfa_sets_move):
+        #la segunda corrida y posterior esto se vuelve una lista y explota
+        dfa_set_completo.clear()
+        dfa_set_completo = set(dfa_set_completo)
+
+        dfa_set_completo = eclosure2(non_automata, statelist, dfa_set_completo)
+        dfa_sets_completos.append(dfa_set_completo[:])
+
+    for i in range(len(dfa_sets_completos)):
+        dfa_sets_completos[i] += clone_dfa_sets_move[i]
+        dfa_sets_completos[i].sort()
+    #print("full sets: ", dfa_sets_completos)
+
+    if first_node_patch == 0:
+        for i in range(len(dfa_sets_completos)):
+            A_node.neighbors[alfabeto[i]] = copy(dfa_sets_completos[i])
+        dfa_automata.nodes.append(A_node)
+        first_node_patch = 1
+
+        set_eps = copy(dfa_sets_completos[0])
+        set_eps = convert_data_to_nodes(set_eps)
+        print("set_eps: ", set_eps)
 
 
-#aplicar e-closure
-for indx, statelist in enumerate(dfa_sets_move):
-    #la segunda corrida y posterior esto se vuelve una lista y explota
-    dfa_set_completo.clear()
-    dfa_set_completo = set(dfa_set_completo)
+    else:
+        recursive_patch = False
+        for i in range(len(dfa_sets_completos)):
+            if dfa_sets_completos[i] not in already_processed:
+                if recursive_patch == False:
+                    new_set = dfa_automata.create_node(copy(dfa_sets_completos[i]))
 
-    dfa_set_completo = eclosure2(non_automata, statelist, dfa_set_completo)
-    dfa_set_completo.sort()
-    dfa_sets_completos.append(dfa_set_completo[:])
+                    recursive_patch = True
+        for i in range(len(dfa_sets_completos)):
+            new_set.neighbors[alfabeto[i]] = copy(dfa_sets_completos[i])
+        dfa_automata.nodes.append(new_set)
 
-print("full sets: ", dfa_sets_completos)
+    for i in range(len(dfa_sets_completos)):
+        if dfa_sets_completos[i] not in store_all_sets:
+
+            store_all_sets.append(copy(dfa_sets_completos[i]))
+
+    set_eps = copy(store_all_sets[first_node_patch])
+    set_eps = convert_data_to_nodes(set_eps)
+    print("set_eps: ", set_eps)
+
+    first_node_patch += 1
+    new_len = len(store_all_sets)
+    if old_len == new_len:
+  #      max_count_patch +=1
+ #   if max_count_patch > len(alfabeto)+1:
+        break
+
+
+#clean all sets set
+store_all_sets = [x for x in store_all_sets if len(x) > 0]
+print(store_all_sets)
+if len(dfa_automata.nodes) != len(store_all_sets):
+    last_node = dfa_automata.create_node(store_all_sets[-1][0])
+    dfa_automata.nodes.append(last_node)
+
+
