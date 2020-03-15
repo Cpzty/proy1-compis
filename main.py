@@ -6,6 +6,19 @@ import string
 all_letters = string.ascii_uppercase
 universal_dfa_count = 0
 
+def subset_move(subset):
+    dfa_set = set()
+    dfa_sets_move = []
+    for letra in alfabeto:
+        dfa_set.clear()
+        for estado in subset:
+            local_dfa_set = estado.neighbors.get(letra, ' ')
+            dfa_set.update(local_dfa_set)
+        dfa_set = {x for x in dfa_set if x != ' '}
+        # dfa_sets_move.append([letra] + list(dfa_set))
+        dfa_sets_move.append(list(dfa_set))
+    return dfa_sets_move
+
 #esta version hace una correccion al original
 def eclosure2(non_automata, list_states, output):
     while True:
@@ -21,6 +34,9 @@ def eclosure2(non_automata, list_states, output):
                     local_set = set(state.neighbors.get('\0', ' '))
                     local_set = list(local_set)
                     local_set.sort()
+                    # check for last state
+                    if state.data == non_automata.nodes[-1].data:
+                        local_set.append(state.data)
                     local_set = set(local_set)
                 #print("local set: ", local_set)
                     output.update(local_set)
@@ -30,8 +46,7 @@ def eclosure2(non_automata, list_states, output):
             break
 
     output = [x for x in output if x != ' ']
-    if non_automata.nodes[0].data not in output:
-        output.insert(0, non_automata.nodes[0].data)
+
     return output
 
 
@@ -107,7 +122,7 @@ expresion = ut.add_concat(expresion)
 #create tree afn and other stuff
 syn_tree = ltree.Tree()
 non_automata = Afn.NFA()
-
+dfa_automata = dfa.Dfa()
 while len(expresion) > 0 or len(outp) > 1:
     if len(outp) > 0:
         for indx, item in enumerate(outp):
@@ -285,6 +300,7 @@ set_eps = set(eps_initial_state)
 #eclosure
 set_eps = eclosure(non_automata, eps_initial_state, set_eps)
 set_eps.sort()
+A_node = dfa_automata.create_node(set_eps)
 print("e-closure over initial states: ", set_eps)
 store_all_sets = set()
 store_all_sets.add(tuple(set_eps))
@@ -292,16 +308,8 @@ print(store_all_sets)
 set_eps = convert_data_to_nodes(set_eps)
 print("converted: ", set_eps)
 
-dfa_set = set()
-dfa_sets_move = []
-for letra in alfabeto:
-    dfa_set.clear()
-    for estado in set_eps:
-        local_dfa_set = estado.neighbors.get(letra, ' ')
-        dfa_set.update(local_dfa_set)
-    dfa_set = {x for x in dfa_set if x != ' '}
-    #dfa_sets_move.append([letra] + list(dfa_set))
-    dfa_sets_move.append(list(dfa_set))
+#loop here
+dfa_sets_move = subset_move(set_eps)
 print("dfa sets move: ", dfa_sets_move)
 
 dfa_set_completo = set()
@@ -313,12 +321,13 @@ for indx, item in enumerate(non_automata.nodes):
             if item.data == item3:
                 dfa_sets_move[indx2][indx3] = item
 
-print(dfa_sets_move)
+
 #aplicar e-closure
 for indx, statelist in enumerate(dfa_sets_move):
     #la segunda corrida y posterior esto se vuelve una lista y explota
     dfa_set_completo.clear()
     dfa_set_completo = set(dfa_set_completo)
+
     dfa_set_completo = eclosure2(non_automata, statelist, dfa_set_completo)
     dfa_set_completo.sort()
     dfa_sets_completos.append(dfa_set_completo[:])
