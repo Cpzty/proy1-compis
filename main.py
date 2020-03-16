@@ -530,7 +530,7 @@ travel_set = set()
 initial_state = eclosure2(non_automata, [non_automata.nodes[0].data], travel_set)
 print(initial_state)
 
-word_to_test = ['b', 'c']
+word_to_test = ['c', 'a', 'a']
 
 for i in range(len(word_to_test)):
     travel_set.clear()
@@ -557,6 +557,8 @@ for indx, nod in enumerate(dfa_automata.nodes):
 #simulate dfa
 dfa_state = dfa_automata.nodes[0]
 for i in range(len(word_to_test)):
+    if dfa_state == ' ':
+        break
     dfa_state = dfa_state.neighbors.get(word_to_test[i], ' ')
     for i in range(len(dfa_automata.nodes)):
         if dfa_state == dfa_automata.nodes[i].afn:
@@ -571,6 +573,8 @@ else:
 #simulate direct dfa
 direct_dfa_state = ddfa.nodes[0]
 for i in range(len(word_to_test)):
+    if direct_dfa_state == ' ':
+        break
     direct_dfa_state = direct_dfa_state.neighbors.get(word_to_test[i], ' ')
     for nod in ddfa.nodes:
         if direct_dfa_state == nod.data:
