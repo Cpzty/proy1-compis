@@ -129,7 +129,8 @@ def kleen_1char():
     non_automata.nodes.append(last_node)
     # next_node now has epsilon towards my_node and last node
     next_node.neighbors['\0'] = [my_node.data, last_node.data]
-expresion = "(a*|b*)c"
+#expresion = "(a*|b*)c"
+expresion = "b+abc+"
 outp = []
 
 #should receive from outp only if expression is not empty
@@ -141,22 +142,33 @@ expresion = list(expresion)
 #primero cambiar ? y +
 expresion = ut.op_opcional(expresion)
 expresion = ut.op_positivo(expresion)
+
 #move stuff after parenthesis
 #expresion, return_to_original = ut.move_after_parenthesis(expresion)
 expresion = ut.add_concat(expresion)
+print('op concat',expresion)
 
 
 #create tree afn and other stuff
 syn_tree = ltree.Tree()
 non_automata = Afn.NFA()
 dfa_automata = dfa.Dfa()
+#skip processing and write directly
+if '(' not in expresion:
+    for indx, item in enumerate(expresion):
+        if item == '.':
+            syn_tree.add_entree(expresion[indx-1], '.', expresion[indx+1])
+        elif item == '*':
+            syn_tree.add_entree(' ', '*', ' ')
+    expresion.clear()
+
+
 while len(expresion) > 0 or len(outp) > 1:
     if len(outp) > 0:
         for indx, item in enumerate(outp):
             #concat is last case
             if item == '.':
                 #or and kleene should not be present
-                if '|' and '*' not in outp:
                     if len(outp) >= 3:
                             #print(outp)
                             temp = outp[:]
@@ -201,7 +213,6 @@ while len(expresion) > 0 or len(outp) > 1:
          #       print("outp", outp)
             #or case
             elif item == '|':
-                if '*' not in outp:
           #          print("im here")
                     #possible lengths 3,2
                     if len(outp) >= 3:
@@ -247,8 +258,17 @@ while len(expresion) > 0 or len(outp) > 1:
 #print("finish outp", outp)
 if (len(outp) == 1):
     syn_tree.add_entree(' ', '.', outp[0])
-syn_tree.see_tree()
+#syn_tree.see_tree()
 
+#clean the tree a bit
+for indx, sublist in enumerate(syn_tree.nodes):
+    if ['*'] == sublist and indx+1 != len(syn_tree.nodes):
+        syn_tree.nodes.insert(indx+1, ['.'])
+
+    elif '.' in sublist and len(sublist)>1:
+        if '.' in syn_tree.nodes[indx+1] and len(syn_tree.nodes[indx+1]) == 3:
+            syn_tree.nodes[indx+1].pop(0)
+syn_tree.see_tree()
 #create NFA
 clone_tree = syn_tree.nodes[:]
 #print("clone tree: ", clone_tree)

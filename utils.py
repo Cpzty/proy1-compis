@@ -18,6 +18,11 @@ def op_positivo(expresion):
             expresion[i] = expresion[i - 1]
             expresion.insert(i, '.')
             expresion.insert(i + 2, '*')
+
+    if expresion[-1] == '+':
+        expresion.append(expresion[-2])
+        expresion.append('*')
+        expresion[-3] = '.'
     return expresion
 
 

@@ -1,0 +1,5 @@
+ESTADOS: ['C', 'B', 'A', 'D']
+SIMBOLOS: ['a', 'b']
+INICIO: C
+ACEPTACION: D
+TRANSICION ["C: {'a': 'A', 'b': 'B', 'c': 'D'}", "B: {'b': 'B', 'c': 'D'}", "A: {'a': 'A', 'c': 'D'}", 'D: {}']
