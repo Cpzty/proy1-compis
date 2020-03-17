@@ -5,6 +5,9 @@ import dfa
 import string
 from copy import copy
 import directdfa
+import string
+all_letters = [x for x in string.ascii_uppercase]
+
 
 all_letters = string.ascii_uppercase
 universal_dfa_count = 0
@@ -482,6 +485,8 @@ clone_tree3 = []
 for i in range(len(clone_tree2)):
     clone_tree3.append(copy(clone_tree2[i]))
 
+print("cl3: ", clone_tree3)
+
 for indx, sublist in enumerate(clone_tree2):
     for indx2, item in enumerate(sublist):
         if item == '*' and len(sublist) == 2:
@@ -491,7 +496,7 @@ for indx, sublist in enumerate(clone_tree2):
 
 for indx, sublist in enumerate(clone_tree2):
     for indx2, item in enumerate(sublist):
-        if item == '|' and len(sublist)== 1:
+        if item == '|' and len(sublist) == 1:
             clone_tree2[indx] = [clone_tree2[indx-2][-1], clone_tree2[indx-1][-1]]
         elif item == '.':
             #print("sup")
@@ -503,6 +508,8 @@ for indx, sublist in enumerate(clone_tree2):
 #print(clone_tree3)
 #ddfa
 ddfa = directdfa.Dfa()
+print("2: ", clone_tree2)
+print("3: ", clone_tree3)
 for i in range(len(clone_tree2)):
     if '*' in clone_tree3[i]:
         some_node = ddfa.create_node()
@@ -519,9 +526,7 @@ for i in range(len(clone_tree2)):
         if '.' in clone_tree3[i+1]:
             some_node.neighbors[some_node.data.lower()] = all_letters[all_letters
             .index(some_node.data)+1]
-
         ddfa.nodes.append(some_node)
-
     elif '.' in clone_tree3[i]:
         some_node = ddfa.create_node()
         for j in range(len(clone_tree2[i]) - 1):
@@ -534,57 +539,13 @@ for i in range(len(ddfa.nodes)):
     if '|' in clone_tree3[i]:
         ddfa.nodes[i], ddfa.nodes[0] = ddfa.nodes[0], ddfa.nodes[i]
 
-for nod in ddfa.nodes:
-    print("data: ", nod.data)
-    print("neighbors: ", nod.neighbors)
-
-#nfa travel
-travel_set = set()
-initial_state = eclosure2(non_automata, [non_automata.nodes[0].data], travel_set)
-print(initial_state)
-
-word_to_test = list(input("ingrese la palabra a probar: "))
-
-for i in range(len(word_to_test)):
-    travel_set.clear()
-    travel_move = nfa_move(non_automata, initial_state, word_to_test[i])
-    add_toclosure = []
-    for i in range(len(travel_move)):
-        add_toclosure += travel_move[i][:]
-        temp = convert_data_to_nodes(travel_move[i])
-        travel_move[i] = temp[i]
-    e_closure_travel = eclosure2(non_automata, travel_move, travel_set) + add_toclosure
-    initial_state = e_closure_travel
-
-print(e_closure_travel)
-if non_automata.nodes[-1].data in e_closure_travel:
-    print("esta palabra si la puede formar el lenguaje, nfa")
-else:
-    print("esta palabra no la puede formar el lenguaje, nfa")
-
-#patch dfa
-
-for indx, nod in enumerate(dfa_automata.nodes):
-    nod.afn = store_all_sets[indx]
-
-#simulate dfa
-dfa_state = dfa_automata.nodes[0]
-for i in range(len(word_to_test)):
-    if dfa_state == ' ' or dfa_state==[]:
-        break
-    #print("dfa s: ", dfa_state)
-    dfa_state = dfa_state.neighbors.get(word_to_test[i], ' ')
-    for i in range(len(dfa_automata.nodes)):
-        if dfa_state == dfa_automata.nodes[i].afn:
-            dfa_state = dfa_automata.nodes[i]
-
-if dfa_state == dfa_automata.nodes[-1]:
-    print("esta palabra si la puede formar el lenguaje, dfa")
-
-else:
-    print("esta palabra no la puede formar el lenguaje, dfa")
+for i in range(len(ddfa.nodes)):
+    print(ddfa.nodes[i].data)
+    print(ddfa.nodes[i].neighbors)
 
 #simulate direct dfa
+word_to_test = list(input("ingrese la palabra a probar: "))
+
 direct_dfa_state = ddfa.nodes[0]
 for i in range(len(word_to_test)):
     if direct_dfa_state == ' ':
@@ -594,9 +555,11 @@ for i in range(len(word_to_test)):
         if direct_dfa_state == nod.data:
             direct_dfa_state = nod
 
-#print("final ddfa: ", direct_dfa_state.data)
+print("final ddfa: ", direct_dfa_state)
 if direct_dfa_state == ddfa.nodes[-1]:
     print("esta palabra si la puede formar el lenguaje, ddfa")
 
 else:
     print("esta palabra no la puede formar el lenguaje, ddfa")
+
+print(clone_tree3)
