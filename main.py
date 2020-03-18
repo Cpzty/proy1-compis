@@ -155,6 +155,7 @@ expresion = '(a|b)'
 #expresion = "b+abc+"
 outp = []
 
+clone_expresion = copy(expresion)
 #should receive from outp only if expression is not empty
 #save index of (
 indexar_parentesis = -2
@@ -600,6 +601,7 @@ travel_set = set()
 initial_state = eclosure2(non_automata, [non_automata.nodes[0].data], travel_set)
 print(initial_state)
 
+print('expresion: ', clone_expresion)
 word_to_test = list(input("ingrese la palabra a probar: "))
 
 for i in range(len(word_to_test)):
@@ -646,10 +648,11 @@ for i in range(len(word_to_test)):
         if dfa_state == dfa_automata.nodes[i].afn:
             dfa_state = dfa_automata.nodes[i]
 
-
-if non_automata.nodes[-1].data in dfa_state.afn:
-    print("esta palabra si la puede formar el lenguaje, dfa")
+if type(dfa_state) != list:
+    if non_automata.nodes[-1].data in dfa_state.afn:
+        print("esta palabra si la puede formar el lenguaje, dfa")
 
 else:
     print("esta palabra no la puede formar el lenguaje, dfa")
+
 
