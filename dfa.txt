@@ -1,5 +1,5 @@
-ESTADOS: ['A', 'B']
-SIMBOLOS: ['a', 'b']
-INICIO: A
-ACEPTACION: B
-TRANSICION ["A: {'a': [], 'b': ['q4', 'q5', 'q7']}", "B: {'a': [], 'b': []}"]
+ESTADOS['A', 'B', 'C']
+SIMBOLOS['a', 'b']
+INICIOA
+ACEPTACION['B', 'C']
+TRANSICION["A: {'a': ['q1', 'q5'], 'b': ['q3', 'q5']}", "B: {'a': [], 'b': []}", "C: {'a': [], 'b': []}"]
