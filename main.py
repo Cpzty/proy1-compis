@@ -129,8 +129,8 @@ def kleen_1char():
     non_automata.nodes.append(last_node)
     # next_node now has epsilon towards my_node and last node
     next_node.neighbors['\0'] = [my_node.data, last_node.data]
-#expresion = "(a*|b*)c"
-expresion = "b+abc+"
+expresion = "(a*|b*)c"
+#expresion = "b+abc+"
 outp = []
 
 #should receive from outp only if expression is not empty
@@ -161,6 +161,15 @@ if '(' not in expresion:
         elif item == '*':
             syn_tree.add_entree(' ', '*', ' ')
     expresion.clear()
+
+#clean the tree a bit
+for indx, sublist in enumerate(syn_tree.nodes):
+    if ['*'] == sublist and indx+1 != len(syn_tree.nodes):
+        syn_tree.nodes.insert(indx+1, ['.'])
+
+    elif '.' in sublist and len(sublist)>1:
+        if '.' in syn_tree.nodes[indx+1] and len(syn_tree.nodes[indx+1]) == 3 :
+            syn_tree.nodes[indx+1].pop(0)
 
 
 while len(expresion) > 0 or len(outp) > 1:
@@ -260,14 +269,6 @@ if (len(outp) == 1):
     syn_tree.add_entree(' ', '.', outp[0])
 #syn_tree.see_tree()
 
-#clean the tree a bit
-for indx, sublist in enumerate(syn_tree.nodes):
-    if ['*'] == sublist and indx+1 != len(syn_tree.nodes):
-        syn_tree.nodes.insert(indx+1, ['.'])
-
-    elif '.' in sublist and len(sublist)>1:
-        if '.' in syn_tree.nodes[indx+1] and len(syn_tree.nodes[indx+1]) == 3:
-            syn_tree.nodes[indx+1].pop(0)
 syn_tree.see_tree()
 #create NFA
 clone_tree = syn_tree.nodes[:]
