@@ -151,8 +151,9 @@ def kleen_1char():
     # next_node now has epsilon towards my_node and last node
     next_node.neighbors['\0'] = [my_node.data, last_node.data]
 #expresion = "(a*|b*)c"
-expresion = '(a|b)'
+#expresion = '(a|b)'
 #expresion = "b+abc+"
+expresion = input('ingrese la expresion: ')
 outp = []
 
 clone_expresion = copy(expresion)
@@ -183,7 +184,16 @@ if '(' not in expresion:
             syn_tree.add_entree(expresion[indx-1], '.', expresion[indx+1])
         elif item == '*':
             syn_tree.add_entree(' ', '*', ' ')
+        elif item == '|':
+            if expresion[indx+1] not in ['-', '*', '|', '.'] and expresion[indx-1] != '-':
+                syn_tree.add_entree(expresion[indx-1], '|', expresion[indx+1])
+                if expresion[indx+1] not in ['*', '|', '.']:
+                    expresion[indx+1] = '-'
+            else:
+                if expresion[indx-1] == '-':
+                    syn_tree.add_entree(' ', '|', expresion[indx+1])
     expresion.clear()
+
 
 #clean the tree a bit
 for indx, sublist in enumerate(syn_tree.nodes):
@@ -291,7 +301,7 @@ while len(expresion) > 0 or len(outp) > 1:
 if (len(outp) == 1):
     syn_tree.add_entree(' ', '.', outp[0])
 #syn_tree.see_tree()
-
+print('le tree')
 syn_tree.see_tree()
 #create NFA
 clone_tree = syn_tree.nodes[:]
@@ -323,6 +333,22 @@ while len(syn_tree.nodes) > 0:
             #or for 3 case
             elif item == '|' and len(lista) == 3:
                 triple_or()
+            elif item == '|' and len(lista) == 2:
+                first_nodeA = non_automata.create_node()
+                last_nodeA = non_automata.create_node()
+                first_nodeA.neighbors[syn_tree.nodes[syn_tree.nodes.index(lista)][1]] = [last_nodeA.data]
+                last_nodeB = non_automata.create_node()
+                last_nodeA.neighbors['\0'] = [last_nodeB.data]
+                non_automata.nodes.append(first_nodeA)
+                non_automata.nodes.append(last_nodeA)
+                first_nodeB = non_automata.create_node()
+                first_nodeB.neighbors['\0'] = [syn_tree.nodes[syn_tree.nodes.index(lista)-1][0], first_nodeA.data]
+                non_automata.nodes.insert(0, first_nodeB)
+                non_automata.nodes.append(last_nodeB)
+                for nod in non_automata.nodes:
+                    if nod.data == syn_tree.nodes[syn_tree.nodes.index(lista)-1][1]:
+                        nod.neighbors['\0'] = [last_nodeB.data]
+                syn_tree.nodes[syn_tree.nodes.index(lista)] = [first_nodeB.data, last_nodeB.data, 'done']
             #concat case
             elif item == '.':
                 #print(syn_tree.nodes)
@@ -444,7 +470,8 @@ while True:
         if dfa_sets_completos[i] not in store_all_sets:
 
             store_all_sets.append(copy(dfa_sets_completos[i]))
-
+    if first_node_patch >= len(store_all_sets):
+        break
     set_eps = copy(store_all_sets[first_node_patch])
     set_eps = convert_data_to_nodes(set_eps)
    # print("set_eps: ", set_eps)
@@ -465,6 +492,9 @@ if len(dfa_automata.nodes) != len(store_all_sets):
     dfa_automata.nodes.append(last_node)
 
 #weird fix
+for nod in non_automata.nodes:
+    print('data: ', nod.data)
+    print('neighbors: ', nod.neighbors)
 fix_nfa = non_automata.nodes[0].neighbors.get('\0', ' ')
 for i in range(len(fix_nfa)):
     fix_nfa[i] = fix_nfa[i].data

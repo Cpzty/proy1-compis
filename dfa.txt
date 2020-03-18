@@ -1,5 +1,5 @@
-ESTADOS['A', 'B', 'C']
-SIMBOLOS['a', 'b']
+ESTADOS['A', 'B', 'C', 'D']
+SIMBOLOS['a', 'b', 'c']
 INICIOA
-ACEPTACION['B', 'C']
-TRANSICION["A: {'a': ['q1', 'q5'], 'b': ['q3', 'q5']}", "B: {'a': [], 'b': []}", "C: {'a': [], 'b': []}"]
+ACEPTACION['D']
+TRANSICION["A: {'a': ['q0', 'q1', 'q3', 'q9'], 'b': ['q4', 'q5', 'q7', 'q9'], 'c': ['q10']}", "B: {'a': ['q0', 'q1', 'q3', 'q9'], 'b': [], 'c': ['q10']}", "C: {'a': [], 'b': ['q4', 'q5', 'q7', 'q9'], 'c': ['q10']}", 'D: {}']
