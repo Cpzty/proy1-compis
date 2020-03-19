@@ -154,7 +154,8 @@ def kleen_1char():
     non_automata.nodes.insert(0, first_node)
     non_automata.nodes.append(last_node)
     # next_node now has epsilon towards my_node and last node
-    next_node.neighbors['\0'] = [copy(my_node.data), copy(last_node.data)]
+    next_node.neighbors['\0'] = [deepcopy(my_node.data), copy(last_node.data)]
+    print('last node:', last_node.data)
 #expresion = "(a*|b*)c"
 #expresion = '(a|b)'
 #expresion = "b+abc+"
@@ -325,7 +326,19 @@ while len(syn_tree.nodes) > 0:
                # print("process alone kleene")
                 kleen_1char()
                 syn_tree.nodes[syn_tree.nodes.index(lista)] = [non_automata.nodes[0].data , non_automata.nodes[-1].data, 'done']
-                #print(syn_tree.nodes)
+            elif item == '*' and len(lista) == 1:
+                #syn_tree.see_tree()
+                first_node = non_automata.create_node()
+                last_node = non_automata.create_node()
+                first_node.neighbors['\0'] = [syn_tree.nodes[syn_tree.nodes.index(lista)-1][0], last_node.data]
+                for nod in non_automata.nodes:
+                    if nod.data == syn_tree.nodes[syn_tree.nodes.index(lista)-1][1]:
+                        nod.neighbors['\0'] = [[syn_tree.nodes.index(lista)-1][0] ,last_node.data]
+                non_automata.nodes.insert(0, first_node)
+                non_automata.nodes.append(last_node)
+                syn_tree.nodes[syn_tree.nodes.index(lista)] = [deepcopy(first_node.data), deepcopy(last_node.data), 'done']
+
+                print(syn_tree.nodes)
             elif item == '|' and len(lista) == 1:
                 #print("im here")
                 if 'done' in syn_tree.nodes[syn_tree.nodes.index(lista)-1] and 'done' in syn_tree.nodes[syn_tree.nodes.index(lista)+1]:
@@ -397,7 +410,15 @@ while len(syn_tree.nodes) > 0:
                     continue
     #break
 
-#print('broken references in tree')
+if len(clone_tree) == 2:
+    count_kleenes = 0
+    for i in range(len(clone_tree)):
+        if '*' in clone_tree[i]:
+            count_kleenes += 1
+    if count_kleenes == 2:
+        non_automata.nodes[-2].neighbors['\0'] = ['q0', 'q5']
+print('broken references in tree')
+#non_automata.see_tree()
 restore_automata_tree = deepcopy(non_automata.nodes)
 
 #time for afd
@@ -539,6 +560,10 @@ print(initial_state)
 print('expresion: ', clone_expresion)
 word_to_test = list(input("ingrese la palabra a probar: "))
 
+if len(word_to_test) == 0:
+    if non_automata.nodes[-1].data in initial_state:
+        print('esta palabra si la puede formar el lenguaje, nfa')
+
 for i in range(len(word_to_test)):
     travel_set.clear()
     travel_move = nfa_move(non_automata, initial_state, word_to_test[i])
@@ -550,11 +575,14 @@ for i in range(len(word_to_test)):
     e_closure_travel = eclosure2(non_automata, travel_move, travel_set) + add_toclosure
     initial_state = e_closure_travel
 
-print(e_closure_travel)
-if non_automata.nodes[-1].data in e_closure_travel:
-    print("esta palabra si la puede formar el lenguaje, nfa")
-else:
-    print("esta palabra no la puede formar el lenguaje, nfa")
+if len(word_to_test)>0:
+    print(e_closure_travel)
+    if non_automata.nodes[-1].data in e_closure_travel:
+        print("esta palabra si la puede formar el lenguaje, nfa")
+    else:
+        print("esta palabra no la puede formar el lenguaje, nfa")
+
+
 
 #patch dfa
 
