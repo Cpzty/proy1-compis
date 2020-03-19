@@ -13,6 +13,12 @@ class NFA():
         self.current_node += 1
         return some_node
 
+    def see_tree(self):
+        for nod in self.nodes:
+            print('data: ', nod.data)
+            print('neighbors: ', nod.neighbors)
+
+
 
 
 

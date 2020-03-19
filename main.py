@@ -3,10 +3,11 @@ import abtreelist as ltree
 import Afn
 import dfa
 import string
-from copy import copy
+from copy import copy, deepcopy
 import directdfa
 
 all_letters = string.ascii_uppercase
+small_letters = [x for x in string.ascii_lowercase]
 universal_dfa_count = 0
 
 def triple_or():
@@ -134,7 +135,11 @@ def convert_data_to_nodes_double_convert(listx):
 def kleen_1char():
     my_node = non_automata.create_node()
     next_node = non_automata.create_node()
-    my_node.neighbors[lista[indx + 1]] = [next_node.data]
+    if '*' == lista[-1]:
+        wolfx = lista[0]
+    else:
+        wolfx = lista[-1]
+    my_node.neighbors[wolfx] = [next_node.data]
     # to grow list...
     # some_data = my_node.neighbors.get(lista[indx+1], "")
     # some_data.append('some other node')
@@ -145,11 +150,11 @@ def kleen_1char():
     first_node = non_automata.create_node()
     last_node = non_automata.create_node()
     # connect to my_node via epsilon and last node
-    first_node.neighbors['\0'] = [my_node.data, last_node.data]
+    first_node.neighbors['\0'] = [copy(my_node.data), copy(last_node.data)]
     non_automata.nodes.insert(0, first_node)
     non_automata.nodes.append(last_node)
     # next_node now has epsilon towards my_node and last node
-    next_node.neighbors['\0'] = [my_node.data, last_node.data]
+    next_node.neighbors['\0'] = [copy(my_node.data), copy(last_node.data)]
 #expresion = "(a*|b*)c"
 #expresion = '(a|b)'
 #expresion = "b+abc+"
@@ -203,6 +208,12 @@ for indx, sublist in enumerate(syn_tree.nodes):
     elif '.' in sublist and len(sublist)>1:
         if '.' in syn_tree.nodes[indx+1] and len(syn_tree.nodes[indx+1]) == 3 :
             syn_tree.nodes[indx+1].pop(0)
+        elif '|' in syn_tree.nodes[indx+1]:
+            if syn_tree.nodes[indx][-1] == syn_tree.nodes[indx+1][0]:
+                syn_tree.nodes[indx].pop(-1)
+    elif ' ' in sublist:
+        sublist[sublist.index(' ')] = clone_expresion[sublist.index(' ')]
+
 
 
 while len(expresion) > 0 or len(outp) > 1:
@@ -361,8 +372,15 @@ while len(syn_tree.nodes) > 0:
                         if syn_tree.nodes.index(lista) != 0:
                             last_node = non_automata.create_node()
                             non_automata.nodes[-1].neighbors[lista[0]] = [last_node.data]
-                            syn_tree.nodes[syn_tree.nodes.index(lista)] = [last_node.data, 'done']
-                            non_automata.nodes.append(last_node)
+                            #concat not present in next node so reference must be made
+                            if syn_tree.nodes.index(lista) +1 != len(syn_tree.nodes):
+                                if '|' in syn_tree.nodes[syn_tree.nodes.index(lista)+1] and len(syn_tree.nodes[syn_tree.nodes.index(lista)+1]) == 3:
+                                    welp = int(last_node.data[1]) + 5
+                                    ghost_ref = 'q' + str(welp)
+                                    last_node.neighbors['\0'] = [ghost_ref]
+                        non_automata.nodes.append(last_node)
+                        syn_tree.nodes[syn_tree.nodes.index(lista)] = [last_node.data, 'done']
+
                     else:
                         continue
             elif 'done' in lista:
@@ -379,8 +397,8 @@ while len(syn_tree.nodes) > 0:
                     continue
     #break
 
-
-
+#print('broken references in tree')
+restore_automata_tree = deepcopy(non_automata.nodes)
 
 #time for afd
 alfabeto = set()
@@ -492,129 +510,16 @@ if len(dfa_automata.nodes) != len(store_all_sets):
     dfa_automata.nodes.append(last_node)
 
 #weird fix
-for nod in non_automata.nodes:
-    print('data: ', nod.data)
-    print('neighbors: ', nod.neighbors)
+#for nod in non_automata.nodes:
+ #   print('data: ', nod.data)
+  #  print('neighbors: ', nod.neighbors)
 fix_nfa = non_automata.nodes[0].neighbors.get('\0', ' ')
 for i in range(len(fix_nfa)):
     fix_nfa[i] = fix_nfa[i].data
 non_automata.nodes[0].neighbors['\0'] = fix_nfa
 
-#dfa directo
-should_swap = []
-
-#clone_tree.append(['\0', '.'])
-for i in range(len(clone_tree)):
-    if '\0' in clone_tree[i]:
-        clone_tree.remove(clone_tree[i])
-        if '|' in clone_tree[i - 1] and len(clone_tree[i-1]) ==1:
-            clone_tree.remove(clone_tree[i-1])
-    if '*' or '.' in clone_tree[i] and len(clone_tree[i]) ==2:
-        clone_tree[i].reverse()
-
-for i in range(len(clone_tree)):
-    if '|' in clone_tree[i] and len(clone_tree[i]) ==1:
-        should_swap.append(True)
-    else:
-        should_swap.append(False)
-
-for i in range(len(clone_tree)):
-    if should_swap[i] == True:
-        clone_tree[i], clone_tree[i+1] = clone_tree[i+1], clone_tree[i]
-
-#print("clone tree: ", clone_tree)
-clone_tree2 = []
-for i in range(len(clone_tree)):
-    clone_tree2.append(copy(clone_tree[i]))
-#create nullable
-flat_list = []
-nullable_list =[]
-for sublist in clone_tree:
-    for item in sublist:
-        flat_list.append(item)
-
-for indx, sublist in enumerate(clone_tree):
-    for indx2, item in enumerate(sublist):
-        if item not in ['|', '.']:
-            clone_tree[indx][indx2] = fnullable(clone_tree[indx][indx2])
-#assume everything except or and concat are processed
-for indx, sublist in enumerate(clone_tree):
-    for indx2, item in enumerate(sublist):
-        if item == '|' and len(sublist)==1:
-            if True in clone_tree[indx-2] or True in clone_tree[indx-1]:
-                clone_tree[indx][indx2] = True
-            else:
-                clone_tree[indx][indx2] = False
-
-        elif item == '.':
-            if True in clone_tree[indx-1] and True in clone_tree[indx]:
-                clone_tree[indx][indx2] = True
-            else:
-                clone_tree[indx][indx2] = False
-
-
-
-#print(clone_tree)
-#print(clone_tree2)
-clone_tree3 = []
-for i in range(len(clone_tree2)):
-    clone_tree3.append(copy(clone_tree2[i]))
-
-for indx, sublist in enumerate(clone_tree2):
-    for indx2, item in enumerate(sublist):
-        if item == '*' and len(sublist) == 2:
-            clone_tree2[indx][indx2] = clone_tree2[indx][indx2-1]
-        elif item == '.' and len(sublist) == 3:
-            clone_tree2[indx][indx2] = clone_tree2[indx][indx2-1]
-
-for indx, sublist in enumerate(clone_tree2):
-    for indx2, item in enumerate(sublist):
-        if item == '|' and len(sublist)== 1:
-            clone_tree2[indx] = [clone_tree2[indx-2][-1], clone_tree2[indx-1][-1]]
-        elif item == '.':
-            #print("sup")
-            if True in clone_tree[indx-1]:
-                clone_tree2[indx] = clone_tree2[indx-1] + [clone_tree2[indx][-1]]
-            else:
-                clone_tree2[indx] = clone_tree2[indx-1]
-#print(clone_tree2)
-#print(clone_tree3)
-#ddfa
-ddfa = directdfa.Dfa()
-for i in range(len(clone_tree2)):
-    if '*' in clone_tree3[i]:
-        some_node = ddfa.create_node()
-        some_node.neighbors[clone_tree2[i][-1]] = some_node.data
-        ddfa.nodes.append(some_node)
-
-    elif '|' in clone_tree3[i] and len(clone_tree3[i]) == 1:
-        #some_node.neighbors[clone_tree2[i][-1]] = clone_tree2[i][-1].upper()
-        some_node = ddfa.create_node()
-        for token in clone_tree2[i]:
-            for nod in ddfa.nodes:
-                if nod.data == token.upper():
-                    some_node.neighbors[token] = nod.data
-        if '.' in clone_tree3[i+1]:
-            some_node.neighbors[some_node.data.lower()] = all_letters[all_letters
-            .index(some_node.data)+1]
-
-        ddfa.nodes.append(some_node)
-
-    elif '.' in clone_tree3[i]:
-        some_node = ddfa.create_node()
-        for j in range(len(clone_tree2[i]) - 1):
-            if ddfa.nodes[j].data == clone_tree2[i][j].upper():
-                ddfa.nodes[j].neighbors[clone_tree2[i][-1]] = some_node.data
-
-        ddfa.nodes.append(some_node)
-
-for i in range(len(ddfa.nodes)):
-    if '|' in clone_tree3[i]:
-        ddfa.nodes[i], ddfa.nodes[0] = ddfa.nodes[0], ddfa.nodes[i]
-
-for nod in ddfa.nodes:
-    print("data: ", nod.data)
-    print("neighbors: ", nod.neighbors)
+non_automata.nodes = restore_automata_tree
+non_automata.see_tree()
 
 nfa_write_estados = [x.data for x in non_automata.nodes]
 #alfabeto
