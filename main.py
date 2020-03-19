@@ -563,6 +563,8 @@ word_to_test = list(input("ingrese la palabra a probar: "))
 if len(word_to_test) == 0:
     if non_automata.nodes[-1].data in initial_state:
         print('esta palabra si la puede formar el lenguaje, nfa')
+    else:
+        print('esta palabra no la puede formar el lenguaje, nfa')
 
 for i in range(len(word_to_test)):
     travel_set.clear()
@@ -614,6 +616,8 @@ for i in range(len(word_to_test)):
 if type(dfa_state) != list:
     if non_automata.nodes[-1].data in dfa_state.afn:
         print("esta palabra si la puede formar el lenguaje, dfa")
+    else:
+        print("esta palabra no la puede formar el lenguaje, dfa")
 
 else:
     print("esta palabra no la puede formar el lenguaje, dfa")
