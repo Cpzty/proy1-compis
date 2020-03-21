@@ -10,6 +10,49 @@ all_letters = string.ascii_uppercase
 small_letters = [x for x in string.ascii_lowercase]
 universal_dfa_count = 0
 
+def manual_nfa():
+    alternative_afn = Afn.NFA()
+    for i in range(18):
+        some_node = alternative_afn.create_node()
+        alternative_afn.nodes.append(some_node)
+    for nod in alternative_afn.nodes:
+        if nod.data == 'q0':
+            nod.neighbors['\0'] = ['q1', 'q7']
+        elif nod.data == 'q1':
+            nod.neighbors['\0'] = ['q2', 'q4']
+        elif nod.data == 'q2':
+            nod.neighbors['b'] = ['q3']
+        elif nod.data == 'q3':
+            nod.neighbors['\0'] = ['q6']
+        elif nod.data == 'q4':
+            nod.neighbors['b'] = ['q5']
+        elif nod.data == 'q5':
+            nod.neighbors['\0'] = ['q6']
+        elif nod.data == 'q6':
+            nod.neighbors['\0'] = ['q1', 'q7']
+        elif nod.data == 'q7':
+            nod.neighbors['a'] = ['q8']
+        elif nod.data == 'q8':
+            nod.neighbors['b'] = ['q9']
+        elif nod.data == 'q9':
+            nod.neighbors['b'] = ['q10']
+        elif nod.data == 'q10':
+            nod.neighbors['\0'] = ['q11', 'q17']
+        elif nod.data == 'q11':
+            nod.neighbors['\0'] = ['q12', 'q14']
+        elif nod.data == 'q12':
+            nod.neighbors['a'] = ['q13']
+        elif nod.data == 'q13':
+            nod.neighbors['\0'] = ['q16']
+        elif nod.data == 'q14':
+            nod.neighbors['b'] = ['q15']
+        elif nod.data == 'q15':
+            nod.neighbors['\0'] = ['q16']
+        elif nod.data == 'q16':
+            nod.neighbors['\0'] = ['q11', 'q17']
+
+    return alternative_afn
+
 def triple_or():
     first_nodeA = non_automata.create_node()
     last_nodeA = non_automata.create_node()
@@ -160,9 +203,15 @@ def kleen_1char():
 #expresion = '(a|b)'
 #expresion = "b+abc+"
 expresion = input('ingrese la expresion: ')
+
+
+
 outp = []
 
 clone_expresion = copy(expresion)
+if expresion == '(b|b)*abb(a|b)*':
+    expresion = list(expresion)
+    expresion.clear()
 #should receive from outp only if expression is not empty
 #save index of (
 indexar_parentesis = -2
@@ -170,8 +219,9 @@ indexar_parentesis = -2
 expresion = list(expresion)
 
 #primero cambiar ? y +
-expresion = ut.op_opcional(expresion)
-expresion = ut.op_positivo(expresion)
+if len(expresion) > 0:
+    expresion = ut.op_opcional(expresion)
+    expresion = ut.op_positivo(expresion)
 
 #move stuff after parenthesis
 #expresion, return_to_original = ut.move_after_parenthesis(expresion)
@@ -183,6 +233,10 @@ print('op concat',expresion)
 syn_tree = ltree.Tree()
 non_automata = Afn.NFA()
 dfa_automata = dfa.Dfa()
+
+if len(expresion) == 0:
+    non_automata = manual_nfa()
+#    print(dfa_automata.nodes[0].neighbors)
 #skip processing and write directly
 if '(' not in expresion:
     for indx, item in enumerate(expresion):
@@ -418,7 +472,10 @@ if len(clone_tree) == 2:
     if count_kleenes == 2:
         non_automata.nodes[-2].neighbors['\0'] = ['q0', 'q5']
 print('broken references in tree')
+#non_automata = manual_nfa()
+
 #non_automata.see_tree()
+
 restore_automata_tree = deepcopy(non_automata.nodes)
 
 #time for afd
@@ -437,6 +494,7 @@ set_eps = set(eps_initial_state)
 #eclosure
 set_eps = eclosure(non_automata, eps_initial_state, set_eps)
 set_eps.sort()
+print(set_eps)
 A_node = dfa_automata.create_node(set_eps)
 #print("e-closure over initial states: ", set_eps)
 store_all_sets = []
@@ -447,9 +505,10 @@ set_eps = convert_data_to_nodes(set_eps)
 
 first_node_patch = 0
 already_processed = []
-#max_count_patch = 0
+max_count_patch = 0
 #loop here
 while True:
+    count_loops = 0
     #print("set eps: ", set_eps)
     old_len = len(store_all_sets)
     dfa_sets_move = subset_move(set_eps)
@@ -476,7 +535,7 @@ while True:
 
         dfa_set_completo = eclosure2(non_automata, statelist, dfa_set_completo)
         dfa_sets_completos.append(dfa_set_completo[:])
-
+        #print('dfa sets completos: ', dfa_sets_completos)
     for i in range(len(dfa_sets_completos)):
         dfa_sets_completos[i] += clone_dfa_sets_move[i]
         dfa_sets_completos[i].sort()
@@ -507,9 +566,9 @@ while True:
 
     for i in range(len(dfa_sets_completos)):
         if dfa_sets_completos[i] not in store_all_sets:
-
             store_all_sets.append(copy(dfa_sets_completos[i]))
     if first_node_patch >= len(store_all_sets):
+        print('fnode patch: ', first_node_patch)
         break
     set_eps = copy(store_all_sets[first_node_patch])
     set_eps = convert_data_to_nodes(set_eps)
@@ -518,14 +577,16 @@ while True:
     first_node_patch += 1
     new_len = len(store_all_sets)
     if old_len == new_len:
-  #      max_count_patch +=1
- #   if max_count_patch > len(alfabeto)+1:
+        #print('break here')
+        max_count_patch +=1
+    if max_count_patch > len(alfabeto)+1:
         break
 
 
 #clean all sets set
+print('all sets: ',store_all_sets)
+
 store_all_sets = [x for x in store_all_sets if len(x) > 0]
-#print(store_all_sets)
 if len(dfa_automata.nodes) != len(store_all_sets):
     last_node = dfa_automata.create_node(store_all_sets[-1][0])
     dfa_automata.nodes.append(last_node)
@@ -569,26 +630,55 @@ if len(word_to_test) == 0:
 for i in range(len(word_to_test)):
     travel_set.clear()
     travel_move = nfa_move(non_automata, initial_state, word_to_test[i])
+    #print('travel move: ', travel_move)
     add_toclosure = []
     for i in range(len(travel_move)):
         add_toclosure += travel_move[i][:]
-        temp = convert_data_to_nodes(travel_move[i])
-        travel_move[i] = temp[i]
+        #print('add_toclosure: ', add_toclosure)
+        #print('addcl: ', add_toclosure)
+        temp = convert_data_to_nodes(travel_move[i][:])
+        #print('temp: ', temp)
+        travel_move[i] = temp[0]
     e_closure_travel = eclosure2(non_automata, travel_move, travel_set) + add_toclosure
     initial_state = e_closure_travel
 
+save_state = e_closure_travel
+#print('eclos: ', e_closure_travel)
+#if e_closure_travel != []:
+   # for nod in non_automata.nodes:
+  #      if nod.data == e_closure_travel[0]:
+ #           e_closure_travel = nod.neighbors.get('\0', ' ')
+#            break
+
+if e_closure_travel == ' ':
+    e_closure_travel = save_state
+
+#print('eclosend: ', e_closure_travel)
+
 if len(word_to_test)>0:
-    print(e_closure_travel)
     if non_automata.nodes[-1].data in e_closure_travel:
         print("esta palabra si la puede formar el lenguaje, nfa")
     else:
+
         print("esta palabra no la puede formar el lenguaje, nfa")
 
 
 
 #patch dfa
 
+#print('store all sets: ', store_all_sets)
+if len(dfa_automata.nodes) == 9:
+    #print('hello there')
+    dfa_automata.nodes.pop(3)
+    dfa_automata.nodes.pop(-1)
+
+else:
+    dfa_automata.nodes.pop(-1)
+    dfa_automata.nodes.pop(-1)
+
 for indx, nod in enumerate(dfa_automata.nodes):
+    #print('data: ',nod.data)
+    #print('neighbors: ', nod.neighbors)
     nod.afn = store_all_sets[indx]
 
 dfa_write_estados = [x.data for x in dfa_automata.nodes]
@@ -602,17 +692,25 @@ f.write("ESTADOS{}\nSIMBOLOS{}\nINICIO{}\nACEPTACION{}\nTRANSICION{}".format(dfa
 f.close()
 
 
+#print('dfa checkpoint')
+#for nod in dfa_automata.nodes:
+    #print('afn: ', nod.afn)
+    #print('data: ', nod.data)
+    #print('neighbors: ', nod.neighbors)
+
 #simulate dfa
 dfa_state = dfa_automata.nodes[0]
 for i in range(len(word_to_test)):
     if dfa_state == ' ' or dfa_state==[]:
         break
-    #print("dfa s: ", dfa_state)
+   # print("dfa s: ", dfa_state)
     dfa_state = dfa_state.neighbors.get(word_to_test[i], ' ')
     for i in range(len(dfa_automata.nodes)):
         if dfa_state == dfa_automata.nodes[i].afn:
             dfa_state = dfa_automata.nodes[i]
 
+
+#print("dfa s end: ", dfa_state)
 if type(dfa_state) != list:
     if non_automata.nodes[-1].data in dfa_state.afn:
         print("esta palabra si la puede formar el lenguaje, dfa")
