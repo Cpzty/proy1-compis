@@ -55,10 +55,11 @@ def further_slicing(lista):
                 sublist[indx] = more_empty_spaces
     return lista
 
-scanner_file = open('ejemplo.txt', 'r')
+scanner_file = open('Aritmetica.txt', 'r')
 lines = scanner_file.readlines()
 scanner_file.close()
 #index
+#print(lines)
 index_characters = lines.index("CHARACTERS\n") + 1
 index_keywords = lines.index("KEYWORDS\n")
 index_tokens = lines.index("TOKENS\n")
@@ -76,10 +77,14 @@ characters_slice = further_slicing(characters_slice)
 keywords_slice = process_keywords(keywords_slice)
 tokens_slice = process_tokens(tokens_slice)
             #sublist[indx] = [sublist[0], ]
-print(characters_slice)
-print(keywords_slice)
-print(tokens_slice)
-
+#print(characters_slice)
+#print(characters_slice)
+#print(keywords_slice)
+#print(tokens_slice)
+#clean empties from all 3
+characters_slice = [x for x in characters_slice if x!= ['']]
+keywords_slice = [x for x in keywords_slice if x!= ['']]
+tokens_slice = [x for x in tokens_slice if x!= ['']]
 
 for i in range(len(characters_slice)):
     if len(characters_slice[i]) == 2:
@@ -108,18 +113,19 @@ for i in range(len(characters_slice)):
 
         my_node.content = deepcopy(cerberus)
         tokenize.characters.append(my_node)
-
+#tokenize.characters = tokenize.characters[0].replace("'", '')
+#tokenize.see_nodes(tokenize.characters)
 for nod in tokenize.characters:
     if len(nod.content) ==1:
         fix_doubles = list(nod.content[0])
         for item in fix_doubles:
-            if item == '"':
+            if item == '"' or item == '.':
                 fix_doubles.remove(item)
             if ord(item) == 34:
                 fix_doubles.remove(item)
         nod.content = [''.join(fix_doubles)]
 
-#tokenize.see_nodes(tokenize.characters)
+tokenize.see_nodes(tokenize.characters)
 #tokenize.see_nodes(tokenize.keywords)
 for sublist in keywords_slice:
     tokenize.keywords[keywords_slice[keywords_slice.index(sublist)][0]] = keywords_slice[keywords_slice.index(sublist)][1]
@@ -134,8 +140,8 @@ for indx, sublist in enumerate(tokens_slice):
     my_node.data = sublist[0]
     for indx2, substring in enumerate(sublist):
         if '}' in substring:
-            repeat = substring[substring.index('{')+1:substring.index('}')]
-            substring = repeat + ' ' + repeat + '* '  + substring[substring.index('}')+1:]
+            repeat = deepcopy(substring[substring.index('{')+1:substring.index('}')])
+            substring = substring[:substring.index('{')] + ' ' + repeat + '* '  + substring[substring.index('}')+1:]
     my_node.content = substring
     tokenize.tokens.append(my_node)
 
@@ -145,11 +151,11 @@ for indx, sublist in enumerate(tokenize.tokens_excepto):
             nod.exceptions = sublist[1:]
 #checkpoint1
 #tokenize.see_nodes(tokenize.tokens)
-#replace tokens for their true content
-#tokenize.see_nodes(tokenize.characters)
+#replace tokens for their true contenttokenize.see_nodes(tokenize.characters)
 for toke1 in tokenize.tokens:
     for toke2 in tokenize.characters:
         my_text = toke1.content.split()
+       # print(my_text)
         for each_word in my_text:
             if toke2.data == each_word:
                 if len(toke2.content) == 1:
@@ -160,7 +166,11 @@ for toke1 in tokenize.tokens:
                     create_strim = create_strim.replace(' ', '')
                     toke1.content = toke1.content.replace(toke2.data, create_strim)
                     toke1.content = toke1.content.replace('"', '')
+            elif toke2.data in each_word:
+                if each_word[each_word.index(toke2.data)-1] == '|':
+                    toke1.content = toke1.content.replace(toke2.data, toke2.content[0])
+                    print(toke1.content)
 tokenize.see_nodes(tokenize.tokens)
 #experiment 1
 experiment1 = tokenize.tokens[0].content.strip()
-print(experiment1.split(' '))
+#print(experiment1.split(' '))
