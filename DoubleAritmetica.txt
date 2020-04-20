@@ -1,11 +1,11 @@
 COMPILER Double    
 
-CHARACTERS 
+CHARACTERS
 
 digit="0123456789".
-tab=CHR(9).
-eol=CHR(10).
-blanco=eol+CHR(13)+tab.
+tab=\t.
+eol=\n.
+blanco=eol+ \r +tab.
 
 KEYWORDS
 

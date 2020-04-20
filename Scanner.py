@@ -55,7 +55,9 @@ def further_slicing(lista):
                 sublist[indx] = more_empty_spaces
     return lista
 
-scanner_file = open('Aritmetica.txt', 'r')
+#scanner_file = open('Aritmetica.txt', 'r')
+scanner_file = open('DoubleAritmetica.txt', 'r')
+#scanner_file = open('HexNumber.txt', 'r')
 lines = scanner_file.readlines()
 scanner_file.close()
 #index
@@ -78,13 +80,22 @@ keywords_slice = process_keywords(keywords_slice)
 tokens_slice = process_tokens(tokens_slice)
             #sublist[indx] = [sublist[0], ]
 #print(characters_slice)
-#print(characters_slice)
 #print(keywords_slice)
 #print(tokens_slice)
 #clean empties from all 3
 characters_slice = [x for x in characters_slice if x!= ['']]
 keywords_slice = [x for x in keywords_slice if x!= ['']]
 tokens_slice = [x for x in tokens_slice if x!= ['']]
+
+#print(characters_slice)
+
+for indx1, sublist in enumerate(characters_slice):
+    for indx2, subtext in enumerate(sublist):
+        if '+' in subtext:
+            redo = deepcopy(subtext.split('+'))
+            characters_slice[indx1][indx2] = redo[0]
+            characters_slice[indx1].append(redo[1])
+
 
 for i in range(len(characters_slice)):
     if len(characters_slice[i]) == 2:
@@ -97,6 +108,8 @@ for i in range(len(characters_slice)):
             for nod in tokenize.characters:
                 if nod.data == characters_slice[i][j]:
                     characters_slice[i][j] = nod.content[0]
+
+#print(characters_slice)
 
 #now add the ones with len > 2
 for i in range(len(characters_slice)):
@@ -113,6 +126,11 @@ for i in range(len(characters_slice)):
 
         my_node.content = deepcopy(cerberus)
         tokenize.characters.append(my_node)
+    elif len(characters_slice[i]) >= 4:
+        my_node = tokenize.create_node()
+        my_node.data = characters_slice[i][0]
+        my_node.content = [''.join(characters_slice[i][1:])]
+        tokenize.characters.append(my_node)
 #tokenize.characters = tokenize.characters[0].replace("'", '')
 #tokenize.see_nodes(tokenize.characters)
 for nod in tokenize.characters:
@@ -125,7 +143,7 @@ for nod in tokenize.characters:
                 fix_doubles.remove(item)
         nod.content = [''.join(fix_doubles)]
 
-tokenize.see_nodes(tokenize.characters)
+#tokenize.see_nodes(tokenize.characters)
 #tokenize.see_nodes(tokenize.keywords)
 for sublist in keywords_slice:
     tokenize.keywords[keywords_slice[keywords_slice.index(sublist)][0]] = keywords_slice[keywords_slice.index(sublist)][1]
@@ -142,20 +160,27 @@ for indx, sublist in enumerate(tokens_slice):
         if '}' in substring:
             repeat = deepcopy(substring[substring.index('{')+1:substring.index('}')])
             substring = substring[:substring.index('{')] + ' ' + repeat + '* '  + substring[substring.index('}')+1:]
+            substring = substring.replace('{', '')
+            substring = substring.replace('}', '*')
+            substring = substring.replace('"', '')
+            substring = substring.replace('.', '')
+
     my_node.content = substring
     tokenize.tokens.append(my_node)
+
+
 
 for indx, sublist in enumerate(tokenize.tokens_excepto):
     for indx2, nod in enumerate(tokenize.tokens):
         if nod.data == sublist[0]:
             nod.exceptions = sublist[1:]
 #checkpoint1
-#tokenize.see_nodes(tokenize.tokens)
+#tokenize.see_nodes(tokenize.characters)
 #replace tokens for their true contenttokenize.see_nodes(tokenize.characters)
 for toke1 in tokenize.tokens:
     for toke2 in tokenize.characters:
         my_text = toke1.content.split()
-       # print(my_text)
+      #  print(my_text)
         for each_word in my_text:
             if toke2.data == each_word:
                 if len(toke2.content) == 1:
@@ -169,7 +194,7 @@ for toke1 in tokenize.tokens:
             elif toke2.data in each_word:
                 if each_word[each_word.index(toke2.data)-1] == '|':
                     toke1.content = toke1.content.replace(toke2.data, toke2.content[0])
-                    print(toke1.content)
+                   # print(toke1.content)
 tokenize.see_nodes(tokenize.tokens)
 #experiment 1
 experiment1 = tokenize.tokens[0].content.strip()

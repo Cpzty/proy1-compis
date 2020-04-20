@@ -4,7 +4,7 @@ COMPILER Aritmetica
 /*--------------Scanner Especification----------*/
 .)
 
-CHARACTERS 
+CHARACTERS
 
 upletter = 'A' .. 'Z'
 downletter = 'a' .. 'z'
