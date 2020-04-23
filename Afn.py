@@ -2,6 +2,7 @@ class Node():
     def __init__(self):
         self.data = ''
         self.neighbors = {}
+        self.isTerminal = False
 class NFA():
     def __init__(self):
         self.nodes = []

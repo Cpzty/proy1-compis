@@ -57,10 +57,13 @@ def further_slicing(lista):
                 sublist[indx] = more_empty_spaces
     return lista
 
-scanner_file = open('ejemplo.txt', 'r')
+scanner_file = open('Aritmetica.txt', 'r')
+#scanner_file = open('DoubleAritmetica.txt', 'r')
+#scanner_file = open('HexNumber.txt', 'r')
 lines = scanner_file.readlines()
 scanner_file.close()
 #index
+#print(lines)
 index_characters = lines.index("CHARACTERS\n") + 1
 index_keywords = lines.index("KEYWORDS\n")
 index_tokens = lines.index("TOKENS\n")
@@ -78,9 +81,22 @@ characters_slice = further_slicing(characters_slice)
 keywords_slice = process_keywords(keywords_slice)
 tokens_slice = process_tokens(tokens_slice)
             #sublist[indx] = [sublist[0], ]
-print(characters_slice)
-print(keywords_slice)
-print(tokens_slice)
+#print(characters_slice)
+#print(keywords_slice)
+#print(tokens_slice)
+#clean empties from all 3
+characters_slice = [x for x in characters_slice if x!= ['']]
+keywords_slice = [x for x in keywords_slice if x!= ['']]
+tokens_slice = [x for x in tokens_slice if x!= ['']]
+
+#print(characters_slice)
+
+for indx1, sublist in enumerate(characters_slice):
+    for indx2, subtext in enumerate(sublist):
+        if '+' in subtext:
+            redo = deepcopy(subtext.split('+'))
+            characters_slice[indx1][indx2] = redo[0]
+            characters_slice[indx1].append(redo[1])
 
 
 for i in range(len(characters_slice)):
@@ -94,6 +110,8 @@ for i in range(len(characters_slice)):
             for nod in tokenize.characters:
                 if nod.data == characters_slice[i][j]:
                     characters_slice[i][j] = nod.content[0]
+
+#print(characters_slice)
 
 #now add the ones with len > 2
 for i in range(len(characters_slice)):
@@ -110,12 +128,18 @@ for i in range(len(characters_slice)):
 
         my_node.content = deepcopy(cerberus)
         tokenize.characters.append(my_node)
-
+    elif len(characters_slice[i]) >= 4:
+        my_node = tokenize.create_node()
+        my_node.data = characters_slice[i][0]
+        my_node.content = [''.join(characters_slice[i][1:])]
+        tokenize.characters.append(my_node)
+#tokenize.characters = tokenize.characters[0].replace("'", '')
+#tokenize.see_nodes(tokenize.characters)
 for nod in tokenize.characters:
     if len(nod.content) ==1:
         fix_doubles = list(nod.content[0])
         for item in fix_doubles:
-            if item == '"':
+            if item == '"' or item == '.':
                 fix_doubles.remove(item)
             if ord(item) == 34:
                 fix_doubles.remove(item)
@@ -136,22 +160,29 @@ for indx, sublist in enumerate(tokens_slice):
     my_node.data = sublist[0]
     for indx2, substring in enumerate(sublist):
         if '}' in substring:
-            repeat = substring[substring.index('{')+1:substring.index('}')]
-            substring = repeat + ' ' + repeat + '* '  + substring[substring.index('}')+1:]
+            repeat = deepcopy(substring[substring.index('{')+1:substring.index('}')])
+            substring = substring[:substring.index('{')] + ' ' + repeat + '* '  + substring[substring.index('}')+1:]
+            substring = substring.replace('{', '')
+            substring = substring.replace('}', '*')
+            substring = substring.replace('"', '')
+            substring = substring.replace('.', '')
+
     my_node.content = substring
     tokenize.tokens.append(my_node)
+
+
 
 for indx, sublist in enumerate(tokenize.tokens_excepto):
     for indx2, nod in enumerate(tokenize.tokens):
         if nod.data == sublist[0]:
             nod.exceptions = sublist[1:]
 #checkpoint1
-#tokenize.see_nodes(tokenize.tokens)
-#replace tokens for their true content
 #tokenize.see_nodes(tokenize.characters)
+#replace tokens for their true contenttokenize.see_nodes(tokenize.characters)
 for toke1 in tokenize.tokens:
     for toke2 in tokenize.characters:
         my_text = toke1.content.split()
+      #  print(my_text)
         for each_word in my_text:
             if toke2.data == each_word:
                 if len(toke2.content) == 1:
@@ -162,10 +193,15 @@ for toke1 in tokenize.tokens:
                     create_strim = create_strim.replace(' ', '')
                     toke1.content = toke1.content.replace(toke2.data, create_strim)
                     toke1.content = toke1.content.replace('"', '')
-                    toke1.content = toke1.content.replace('(', '')
-                    toke1.content = toke1.content.replace(')', '|\0')
+            elif toke2.data in each_word:
+                if each_word[each_word.index(toke2.data)-1] == '|':
+                    toke1.content = toke1.content.replace(toke2.data, toke2.content[0])
 
-tokenize.see_nodes(tokenize.tokens)
+#print('characters: ', characters_slice)
+#print('keywords: ', keywords_slice)
+#print('tokens: ', tokens_slice)
+#tokenize.see_nodes(tokenize.tokens)
+
 #experiment 1
 no_determinista = Afn.NFA()
 
@@ -181,7 +217,14 @@ for nod in tokenize.tokens:
         else:
             current_nod[i] = list(current_nod[i])
     current_nod[0] = [current_nod[0]]
+    current_nod[0].append('.')
     current_nod[1].remove('')
+    if '|' in current_nod[1][1]:
+        current_nod[1] = [current_nod[1][0]] + ['|'] + [current_nod[1][1][1:]]
+    if len(current_nod[1]) > 2:
+        if '*' in current_nod[1][2]:
+            current_nod[1] = [current_nod[1][0]] + [current_nod[1][1]] + [current_nod[1][2][:-1]]
+            current_nod.append(['*'])
     print('nod_token: ',current_nod[1])
     nod.content = current_nod
 tokenize.see_nodes(tokenize.tokens)
@@ -203,7 +246,7 @@ tokenize.see_nodes(tokenize.tokens)
 
 
 all_ops = ['*', '|', '.', '(', ')']
-regexp = '(a*|b*) c'
+#regexp = '(a*|b*) c'
 #regexp = '(b|b)* a b b(a|b)*'
 #regexp = 'b* ab?'
 #lregexp = list(regexp)
@@ -326,8 +369,8 @@ def simplify_exp(lregexp):
 
     return lregexp
 
-lregexp = simplify_exp(lregexp)
-print('lreg: ', lregexp)
+#lregexp = simplify_exp(lregexp)
+#print('lreg: ', lregexp)
 def process_all(lregexp):
     clon = []
     for indx, item in enumerate(lregexp):
@@ -398,20 +441,14 @@ def process_triple_or(token1, token2):
     no_determinista.nodes.append(node5)
     return [node4.data, node5.data, 'done']
 
-def process_concat_len2(token, last_state):
-    flat_list = []
-    for sublist in clon_exp:
-        for item in sublist:
-            flat_list.append(item)
-    flat_list.sort()
-    flat_list = [x for x in flat_list if x != '|']
-    print(flat_list)
-    only_node = no_determinista.create_node()
-    node_before = no_determinista.convert_text_to_node(flat_list[-1])
-    node_before.neighbors[token] = [only_node.data]
-    no_determinista.nodes.append(only_node)
-    return [node_before.data, only_node.data, 'done']
-
+def process_concat_len2(token, last_state, indice):
+    first_node = no_determinista.create_node()
+    first_node.neighbors[token] = [last_state]
+    if indice == 0:
+        no_determinista.nodes.insert(0, first_node)
+    else:
+        no_determinista.nodes.append(first_node)
+    return [first_node.data, last_state]
 def process_alone_or(node0data, node1data, node2data, node3data):
     node1 = no_determinista.convert_text_to_node(node1data)
     node3 = no_determinista.convert_text_to_node(node3data)
@@ -442,26 +479,23 @@ def generate_afn(clon_exp):
                 if 'done' in clon_exp[indx-1] and 'done' in clon_exp[indx+1]:
                  clon_exp[indx] = process_alone_or(clon_exp[indx-1][0],clon_exp[indx-1][1], clon_exp[indx+1][0], clon_exp[indx+1][1])
         elif '.' in sublist:
-            flat_list = []
-            for subl in clon_exp:
-                for item in subl:
-                    flat_list.append(item)
-            if '|' not in flat_list[:indx]:
-                if len(sublist) == 2:
-                    clon_exp[indx] = process_concat_len2(sublist[1], clon_exp[indx-1][1])
-                    if indx == 0:
-                        no_determinista.protect_initial_state = 1
-clon_exp = process_all(lregexp)
-clon_del_clon = deepcopy(clon_exp)
+            if 'done' in clon_exp[indx + 1]:
+                #print(no_determinista.nodes[0].data)
+                clon_exp[indx] = process_concat_len2(sublist[0], no_determinista.nodes[0].data, indx)
+
+#clon_exp = process_all(lregexp)
+
+#clon_del_clon = deepcopy(clon_exp)
 #print(lregexp)
-print(clon_exp)
+#print(clon_exp)
+for nods in range(len(tokenize.tokens)):
+    clon_exp = deepcopy(tokenize.tokens[nods].content)
+    #call generate_afn twice as alone_or cannot be processed in the first run
+    for i in range(2):
+        generate_afn(clon_exp)
 
-#call generate_afn twice as alone_or cannot be processed in the first run
-for i in range(2):
-    generate_afn(clon_exp)
-
 print(clon_exp)
-no_determinista.see_tree()
+#no_determinista.see_tree()
 missing_concat = no_determinista.missing_concats()
 for indx, sublist in enumerate(clon_exp):
     for nod in missing_concat:
@@ -474,7 +508,12 @@ for indx, sublist in enumerate(clon_exp):
 
 
 no_determinista.see_tree()
-
+find_terminal_states = []
+for nod in no_determinista.nodes:
+    if len(nod.neighbors) == 0:
+        find_terminal_states.append(nod.data)
+        nod.isTerminal == True
+print('terminal states: ',find_terminal_states)
 #time for afd
 alfabeto = set()
 for nod in no_determinista.nodes:

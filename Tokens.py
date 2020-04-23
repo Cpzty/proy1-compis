@@ -3,6 +3,7 @@ class Node():
         self.data = ''
         self.content = []
         self.exceptions = []
+
 class Tokens:
     def __init__(self):
         self.characters = []

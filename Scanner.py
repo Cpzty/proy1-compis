@@ -55,8 +55,8 @@ def further_slicing(lista):
                 sublist[indx] = more_empty_spaces
     return lista
 
-#scanner_file = open('Aritmetica.txt', 'r')
-scanner_file = open('DoubleAritmetica.txt', 'r')
+scanner_file = open('Aritmetica.txt', 'r')
+#scanner_file = open('DoubleAritmetica.txt', 'r')
 #scanner_file = open('HexNumber.txt', 'r')
 lines = scanner_file.readlines()
 scanner_file.close()
@@ -195,7 +195,12 @@ for toke1 in tokenize.tokens:
                 if each_word[each_word.index(toke2.data)-1] == '|':
                     toke1.content = toke1.content.replace(toke2.data, toke2.content[0])
                    # print(toke1.content)
-tokenize.see_nodes(tokenize.tokens)
+#tokenize.see_nodes(tokenize.tokens)
 #experiment 1
 experiment1 = tokenize.tokens[0].content.strip()
 #print(experiment1.split(' '))
+
+print('characters: ', characters_slice)
+print('keywords: ', keywords_slice)
+print('tokens: ', tokens_slice)
+tokenize.see_nodes(tokenize.tokens)
