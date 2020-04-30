@@ -2,7 +2,7 @@ import Afn
 import dfa
 from copy import deepcopy, copy
 import  Tokens
-
+from time import sleep
 #TOKENIZE CLASS
 tokenize = Tokens.Tokens()
 
@@ -257,7 +257,12 @@ def nfa_move(no_determinista, list_states, token):
     for indx, item in enumerate(list_states):
         for indx2, nod in enumerate(no_determinista.nodes):
             if nod.data == item:
-                output.append(nod.neighbors.get(token, ' '))
+                my_keys = list(nod.neighbors.keys())
+                #print('nod data: ', nod.data)
+                #print('my_keys: ', my_keys)
+                if len(my_keys)!=0:
+                    if token in my_keys[0]:
+                        output.append(nod.neighbors.get(my_keys[0], ' '))
     #clean empty returns
     output = [x for x in output if x!= ' ']
     return output
@@ -488,14 +493,21 @@ def generate_afn(clon_exp):
 #clon_del_clon = deepcopy(clon_exp)
 #print(lregexp)
 #print(clon_exp)
+
+##
+#find initial states tracks the initial state of each generated afn
+find_initial_states = []
 for nods in range(len(tokenize.tokens)):
     clon_exp = deepcopy(tokenize.tokens[nods].content)
     #call generate_afn twice as alone_or cannot be processed in the first run
     for i in range(2):
         generate_afn(clon_exp)
-
-print(clon_exp)
+    if clon_exp[0][0] not in find_initial_states:
+        find_initial_states.append(clon_exp[0][0])
+    #print(clon_exp)
 #no_determinista.see_tree()
+print('initial states found: ', find_initial_states)
+
 missing_concat = no_determinista.missing_concats()
 for indx, sublist in enumerate(clon_exp):
     for nod in missing_concat:
@@ -507,7 +519,7 @@ for indx, sublist in enumerate(clon_exp):
                     nod.neighbors['\0'] = [clon_exp[indx + 1][0]]
 
 
-no_determinista.see_tree()
+#no_determinista.see_tree()
 find_terminal_states = []
 for nod in no_determinista.nodes:
     if len(nod.neighbors) == 0:
@@ -524,8 +536,15 @@ alfabeto = [x for x in alfabeto if x != '\0']
 alfabeto.sort()
 #print("alfabeto: ", alfabeto)
 
+##
+#agregar un nodo con transiciones epsilon hacia los demas nodos iniciales
+my_node = no_determinista.create_node()
+my_node.neighbors['\0'] = find_initial_states
+no_determinista.nodes.insert(0, my_node)
+##
+
 eps_initial_state = no_determinista.nodes[0].neighbors.get('\0', ' ')
-#print(eps_initial_state)
+print('initial state: ', eps_initial_state)
 set_eps = set(eps_initial_state)
 #eclosure
 set_eps = eclosure(no_determinista, eps_initial_state, set_eps)
@@ -637,7 +656,7 @@ for i in range(len(fix_nfa)):
 no_determinista.nodes[0].neighbors['\0'] = fix_nfa
 
 #no_determinista.nodes = restore_automata_tree
-#no_determinista.see_tree()
+no_determinista.see_tree()
 
 nfa_write_estados = [x.data for x in no_determinista.nodes]
 #alfabeto
@@ -652,9 +671,10 @@ f.close()
 #nfa travel
 travel_set = set()
 initial_state = eclosure2(no_determinista, [no_determinista.nodes[0].data], travel_set)
+clon_initial_state = deepcopy(initial_state)
 print(initial_state)
 
-print('expresion: ', regexp)
+#print('expresion: ', regexp)
 word_to_test = list(input("ingrese la palabra a probar: "))
 
 if len(word_to_test) == 0:
@@ -663,22 +683,61 @@ if len(word_to_test) == 0:
     else:
         print('esta palabra no la puede formar el lenguaje, nfa')
 
-for i in range(len(word_to_test)):
-    travel_set.clear()
-    travel_move = nfa_move(no_determinista, initial_state, word_to_test[i])
-    #print('travel move: ', travel_move)
-    add_toclosure = []
-    for i in range(len(travel_move)):
-        add_toclosure += travel_move[i][:]
-        #print('add_toclosure: ', add_toclosure)
-        #print('addcl: ', add_toclosure)
-        temp = convert_data_to_nodes(travel_move[i][:])
-        #print('temp: ', temp)
-        travel_move[i] = temp[0]
-    e_closure_travel = eclosure2(no_determinista, travel_move, travel_set) + add_toclosure
-    initial_state = e_closure_travel
-
+looper = True
+ignore_eps_closure = False
+tokens_found = []
+dont_test = False
+while looper:
+    initial_state = clon_initial_state
+    #word_to_test.insert(0, 'welp')
+    for i in range(len(word_to_test)):
+        print('word to test2: ', word_to_test)
+        print('inicial: ', initial_state)
+        last_known = deepcopy(list(travel_set))
+        travel_set.clear()
+        print('i: ',i)
+        #print(word_to_test[i])
+        travel_move = nfa_move(no_determinista, initial_state, word_to_test[i])
+        print('travel move: ', travel_move)
+        if travel_move == []:
+            for j in range(len(find_terminal_states)):
+                if find_terminal_states[j] in last_known:
+                    print('Found token: {}'.format(tokenize.tokens[j].data))
+                    tokens_found.append([tokenize.tokens[j].data, ''.join(deepcopy(word_to_test[:i]))])
+            word_to_test = word_to_test[i:]
+            #i = 0
+            print('word to test: ', word_to_test)
+            #reset state back to first state
+            #ignore_eps_closure = True
+            break
+        add_toclosure = []
+        for c in range(len(travel_move)):
+            add_toclosure += travel_move[c][:]
+            #print('add_toclosure: ', add_toclosure)
+            #print('addcl: ', add_toclosure)
+            temp = convert_data_to_nodes(travel_move[c][:])
+            #print('temp: ', temp)
+            travel_move[c] = temp[0]
+        e_closure_travel = eclosure2(no_determinista, travel_move, travel_set) + add_toclosure
+        print('i: {} vs len of word {}'.format(i, len(word_to_test)-1))
+        #sleep(5)
+        if i == len(word_to_test)-1:
+            #print('i enter here and i oop')
+            for j in range(len(find_terminal_states)):
+                print('eclos: ', e_closure_travel)
+                if find_terminal_states[j] in e_closure_travel:
+                    print('Found token: {}'.format(tokenize.tokens[j].data))
+                    tokens_found.append([tokenize.tokens[j].data, ''.join(deepcopy(word_to_test))])
+            looper = False
+        if ignore_eps_closure:
+            initial_state = clon_initial_state
+        else:
+            initial_state = e_closure_travel
+        ignore_eps_closure = False
+    #word_to_test = ''
 save_state = e_closure_travel
+
+print('all tokens found: ', tokens_found)
 #print('eclos: ', e_closure_travel)
 #if e_closure_travel != []:
    # for nod in no_determinista.nodes:
@@ -689,16 +748,26 @@ save_state = e_closure_travel
 if e_closure_travel == ' ':
     e_closure_travel = save_state
 
-#print('eclosend: ', e_closure_travel)
+print('eclosend: ', e_closure_travel)
 
+##index terminal state to be able to return token
+indx_terminal_state = None
 if len(word_to_test)>0:
-    if no_determinista.nodes[-1].data in e_closure_travel:
-        print("esta palabra si la puede formar el lenguaje, nfa")
+    for i in range(len(find_terminal_states)):
+        if find_terminal_states[i] in e_closure_travel:
+            indx_terminal_state = i
+            break
+
+         #print("esta palabra si la puede formar el lenguaje, nfa")
+
     else:
 
         print("esta palabra no la puede formar el lenguaje, nfa")
 
+#print('found: ', indx_terminal_state)
+##convert index to token
 
+#print('Found token: {}'.format(tokenize.tokens[indx_terminal_state].data))
 
 #patch dfa
 
