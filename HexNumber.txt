@@ -6,15 +6,15 @@ COMPILER Aritmetica
 
 CHARACTERS
 
-upletter = 'A' .. 'Z'
-downletter = 'a' .. 'z'
+upletter = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
+downletter = "abcdefghijklmnopqrstuvwxyz".
 letter = "abcdefghijklmnopqrstuvwxyz" + upletter + downletter. 
 digit = "0123456789" .
 hexdigit = digit + "ABCDEF".
 hexterm = 'H'.
-tab = CHR(9).
-eol = CHR(10).
-whitespace = CHR(13)+eol+tab+CHR(13).
+tab = \t.
+eol = \n.
+whitespace = \r+eol+tab+\r.
 sign ='+'+'-'.
 
 KEYWORDS

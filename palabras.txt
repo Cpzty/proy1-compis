@@ -1,0 +1,20 @@
+COMPILER Palabras 
+	
+(.
+/*--------------Scanner Especification----------*/
+.)
+
+CHARACTERS
+
+downletter = "abcdefghijklmnopqrstuvwxyz".
+
+KEYWORDS
+
+while = "while".
+do = "do".
+
+TOKENS
+
+palabra = downletter{downletter} EXCEPT KEYWORDS.
+
+PRODUCTIONS

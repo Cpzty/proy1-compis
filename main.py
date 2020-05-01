@@ -57,9 +57,10 @@ def further_slicing(lista):
                 sublist[indx] = more_empty_spaces
     return lista
 
-scanner_file = open('Aritmetica.txt', 'r')
+#scanner_file = open('Aritmetica.txt', 'r')
 #scanner_file = open('DoubleAritmetica.txt', 'r')
 #scanner_file = open('HexNumber.txt', 'r')
+scanner_file = open('palabras.txt', 'r')
 lines = scanner_file.readlines()
 scanner_file.close()
 #index
@@ -202,6 +203,7 @@ for toke1 in tokenize.tokens:
 #print('tokens: ', tokens_slice)
 #tokenize.see_nodes(tokenize.tokens)
 
+
 #experiment 1
 no_determinista = Afn.NFA()
 
@@ -218,16 +220,32 @@ for nod in tokenize.tokens:
             current_nod[i] = list(current_nod[i])
     current_nod[0] = [current_nod[0]]
     current_nod[0].append('.')
-    current_nod[1].remove('')
+    if '' in current_nod[1]:
+        current_nod[1].remove('')
     if '|' in current_nod[1][1]:
         current_nod[1] = [current_nod[1][0]] + ['|'] + [current_nod[1][1][1:]]
     if len(current_nod[1]) > 2:
         if '*' in current_nod[1][2]:
             current_nod[1] = [current_nod[1][0]] + [current_nod[1][1]] + [current_nod[1][2][:-1]]
             current_nod.append(['*'])
-    print('nod_token: ',current_nod[1])
+   # print('nod_token: ',current_nod[1])
     nod.content = current_nod
+for nod in tokenize.tokens:
+    if nod.data == 'hexnumber ':
+        tokenize.tokens.remove(tokenize.tokens[1])
+        tokenize.tokens.remove(tokenize.tokens[2])
+
+#     nod.content = [nod.content[0], nod.content[1], ['.'], nod.content[0], nod.content[1]]
+for nod in tokenize.tokens:
+    #print(nod.exceptions)
+    if nod.exceptions[0] == 'keywords':
+        nod.exceptions = list(tokenize.keywords.keys())
+        for i in  range(len(nod.exceptions)):
+
+            nod.exceptions[i] = nod.exceptions[i][:-1]
+
 tokenize.see_nodes(tokenize.tokens)
+
  #   new_tokens += current_nod
 #print('new_tokens: ', new_tokens)
 #for i in range(len(new_tokens)):
@@ -502,7 +520,7 @@ for nods in range(len(tokenize.tokens)):
     #call generate_afn twice as alone_or cannot be processed in the first run
     for i in range(2):
         generate_afn(clon_exp)
-    if clon_exp[0][0] not in find_initial_states:
+    if clon_exp[0][0] not in find_initial_states and clon_exp[0][0]!='[sign]digit':
         find_initial_states.append(clon_exp[0][0])
     #print(clon_exp)
 #no_determinista.see_tree()
@@ -675,38 +693,60 @@ clon_initial_state = deepcopy(initial_state)
 print(initial_state)
 
 #print('expresion: ', regexp)
-word_to_test = list(input("ingrese la palabra a probar: "))
-
-if len(word_to_test) == 0:
-    if no_determinista.nodes[-1].data in initial_state:
-        print('esta palabra si la puede formar el lenguaje, nfa')
-    else:
-        print('esta palabra no la puede formar el lenguaje, nfa')
+word_to_test = input("ingrese el archivo a probar: ")
+file_to_scan = open(word_to_test, 'r')
+lines2 = file_to_scan.readlines()
+file_to_scan.close()
+word_to_test = lines2[0]
+#if len(word_to_test) == 0:
+ #   if no_determinista.nodes[-1].data in initial_state:
+  #      print('esta palabra si la puede formar el lenguaje, nfa')
+   # else:
+    #    print('esta palabra no la puede formar el lenguaje, nfa')
 
 looper = True
 ignore_eps_closure = False
 tokens_found = []
+keywords_found = []
 dont_test = False
 while looper:
     initial_state = clon_initial_state
     #word_to_test.insert(0, 'welp')
     for i in range(len(word_to_test)):
-        print('word to test2: ', word_to_test)
-        print('inicial: ', initial_state)
+        #print('word to test2: ', word_to_test)
+        #print('inicial: ', initial_state)
         last_known = deepcopy(list(travel_set))
         travel_set.clear()
-        print('i: ',i)
+        #print('i: ',i)
         #print(word_to_test[i])
         travel_move = nfa_move(no_determinista, initial_state, word_to_test[i])
-        print('travel move: ', travel_move)
+        #print('travel move: ', travel_move)
         if travel_move == []:
             for j in range(len(find_terminal_states)):
                 if find_terminal_states[j] in last_known:
-                    print('Found token: {}'.format(tokenize.tokens[j].data))
-                    tokens_found.append([tokenize.tokens[j].data, ''.join(deepcopy(word_to_test[:i]))])
-            word_to_test = word_to_test[i:]
+                    if word_to_test[:i] not in tokenize.tokens[j].exceptions:
+                        print('Found token: {}'.format(tokenize.tokens[j].data))
+                        tokens_found.append([tokenize.tokens[j].data, ''.join(deepcopy(word_to_test[:i]))])
+                    else:
+                        print('Found keyword: {}'.format(word_to_test[:i]))
+                        keywords_found.append(word_to_test[:i])
+                    break
+            #check if char is defined in characters
+            found_char_in_characters = False
+            for nod in tokenize.characters:
+                print(nod.content)
+                if word_to_test[i] in nod.content[0]:
+                    found_char_in_characters = True
+            if found_char_in_characters:
+                word_to_test = word_to_test[i:]
+            else:
+                print('char not found, skipping over: ', word_to_test[i])
+                if word_to_test[i] == word_to_test[-1]:
+                    looper = False
+                    #break
+                word_to_test = word_to_test[i+1:]
             #i = 0
-            print('word to test: ', word_to_test)
+            #print('word to test: ', word_to_test)
             #reset state back to first state
             #ignore_eps_closure = True
             break
@@ -719,16 +759,21 @@ while looper:
             #print('temp: ', temp)
             travel_move[c] = temp[0]
         e_closure_travel = eclosure2(no_determinista, travel_move, travel_set) + add_toclosure
-        print('i: {} vs len of word {}'.format(i, len(word_to_test)-1))
+        #print('i: {} vs len of word {}'.format(i, len(word_to_test)-1))
         #sleep(5)
         if i == len(word_to_test)-1:
             #print('i enter here and i oop')
             for j in range(len(find_terminal_states)):
-                print('eclos: ', e_closure_travel)
+               # print('eclos: ', e_closure_travel)
                 if find_terminal_states[j] in e_closure_travel:
-                    print('Found token: {}'.format(tokenize.tokens[j].data))
-                    tokens_found.append([tokenize.tokens[j].data, ''.join(deepcopy(word_to_test))])
-            looper = False
+                    if ''.join(word_to_test) not in tokenize.tokens[j].exceptions:
+                        print('Found token: {}'.format(tokenize.tokens[j].data))
+                        tokens_found.append([tokenize.tokens[j].data, ''.join(deepcopy(word_to_test[:i]))])
+                    else:
+                        print('Found keyword: {}'.format(''.join(word_to_test)))
+                        keywords_found.append(''.join(word_to_test))
+                    looper = False
+                    break
         if ignore_eps_closure:
             initial_state = clon_initial_state
         else:
@@ -738,91 +783,10 @@ while looper:
 save_state = e_closure_travel
 
 print('all tokens found: ', tokens_found)
+print('all keywords found: ', keywords_found)
 #print('eclos: ', e_closure_travel)
 #if e_closure_travel != []:
    # for nod in no_determinista.nodes:
   #      if nod.data == e_closure_travel[0]:
  #           e_closure_travel = nod.neighbors.get('\0', ' ')
 #            break
-
-if e_closure_travel == ' ':
-    e_closure_travel = save_state
-
-print('eclosend: ', e_closure_travel)
-
-##index terminal state to be able to return token
-indx_terminal_state = None
-if len(word_to_test)>0:
-    for i in range(len(find_terminal_states)):
-        if find_terminal_states[i] in e_closure_travel:
-            indx_terminal_state = i
-            break
-
-         #print("esta palabra si la puede formar el lenguaje, nfa")
-
-    else:
-
-        print("esta palabra no la puede formar el lenguaje, nfa")
-
-#print('found: ', indx_terminal_state)
-##convert index to token
-
-#print('Found token: {}'.format(tokenize.tokens[indx_terminal_state].data))
-
-#patch dfa
-
-#print('store all sets: ', store_all_sets)
-if len(dfa_automata.nodes) == 9:
-    #print('hello there')
-    dfa_automata.nodes.pop(3)
-    dfa_automata.nodes.pop(-1)
-
-else:
-    dfa_automata.nodes.pop(-1)
-    dfa_automata.nodes.pop(-1)
-
-for indx, nod in enumerate(dfa_automata.nodes):
-    #print('data: ',nod.data)
-    #print('neighbors: ', nod.neighbors)
-    nod.afn = store_all_sets[indx]
-
-dfa_write_estados = [x.data for x in dfa_automata.nodes]
-#alfabeto
-dfa_write_inicio = dfa_automata.nodes[0].data
-dfa_write_aceptacion = [x.data for x in dfa_automata.nodes if no_determinista.nodes[-1].data in x.afn]
-dfa_write_transicion = [x.data + ': ' + str(x.neighbors) for x in dfa_automata.nodes]
-
-f = open("dfa.txt", "w")
-f.write("ESTADOS{}\nSIMBOLOS{}\nINICIO{}\nACEPTACION{}\nTRANSICION{}".format(dfa_write_estados, alfabeto, dfa_write_inicio, dfa_write_aceptacion, dfa_write_transicion))
-f.close()
-
-
-#print('dfa checkpoint')
-#for nod in dfa_automata.nodes:
-    #print('afn: ', nod.afn)
-    #print('data: ', nod.data)
-    #print('neighbors: ', nod.neighbors)
-
-#simulate dfa
-dfa_state = dfa_automata.nodes[0]
-for i in range(len(word_to_test)):
-    if dfa_state == ' ' or dfa_state==[]:
-        break
-   # print("dfa s: ", dfa_state)
-    dfa_state = dfa_state.neighbors.get(word_to_test[i], ' ')
-    for i in range(len(dfa_automata.nodes)):
-        if dfa_state == dfa_automata.nodes[i].afn:
-            dfa_state = dfa_automata.nodes[i]
-
-
-#print("dfa s end: ", dfa_state)
-if type(dfa_state) != list:
-    if no_determinista.nodes[-1].data in dfa_state.afn:
-        print("esta palabra si la puede formar el lenguaje, dfa")
-    else:
-        print("esta palabra no la puede formar el lenguaje, dfa")
-
-else:
-    print("esta palabra no la puede formar el lenguaje, dfa")
-
-
