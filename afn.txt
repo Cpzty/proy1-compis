@@ -1,5 +1,5 @@
-ESTADOS['q5', 'q4', 'q2', 'q0', 'q1', 'q3']
-SIMBOLOS['abcdefghijklmnopqrstuvwxyz']
-INICIOq5
-ACEPTACIONq3
-TRANSICION["q5: {'\\x00': ['q4']}", "q4: {'abcdefghijklmnopqrstuvwxyz': ['q2']}", "q2: {'\\x00': ['q0', 'q3']}", "q0: {'abcdefghijklmnopqrstuvwxyz': ['q1']}", "q1: {'\\x00': ['q0', 'q3']}", 'q3: {}']
+ESTADOS['q14', 'q13', 'q11', 'q8', 'q6', 'q0', 'q1', 'q2', 'q3', 'q4', 'q5', 'q7', 'q9', 'q10', 'q12']
+SIMBOLOS['0123456789', 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz']
+INICIOq14
+ACEPTACIONq12
+TRANSICION["q14: {'\\x00': ['q8', 'q13']}", "q13: {'0123456789': ['q11']}", "q11: {'\\x00': ['q9', 'q12']}", "q8: {'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz': ['q6']}", "q6: {'\\x00': ['q4', 'q7']}", "q0: {'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz': ['q1']}", "q1: {'\\x00': ['q5']}", "q2: {'0123456789': ['q3']}", "q3: {'\\x00': ['q5']}", "q4: {'\\x00': ['q0', 'q2']}", "q5: {'\\x00': ['q4', 'q7']}", 'q7: {}', "q9: {'0123456789': ['q10']}", "q10: {'\\x00': ['q9', 'q12']}", 'q12: {}']

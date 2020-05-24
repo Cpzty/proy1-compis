@@ -2,8 +2,8 @@ import Afn
 import dfa
 from copy import deepcopy, copy
 import  Tokens
-from time import sleep
 #TOKENIZE CLASS
+import standalone_parser
 tokenize = Tokens.Tokens()
 
 def process_tokens(token_list):
@@ -57,10 +57,10 @@ def further_slicing(lista):
                 sublist[indx] = more_empty_spaces
     return lista
 
-#scanner_file = open('Aritmetica.txt', 'r')
+scanner_file = open('Aritmetica.txt', 'r')
 #scanner_file = open('DoubleAritmetica.txt', 'r')
 #scanner_file = open('HexNumber.txt', 'r')
-scanner_file = open('palabras.txt', 'r')
+#scanner_file = open('palabras.txt', 'r')
 lines = scanner_file.readlines()
 scanner_file.close()
 #index
@@ -172,6 +172,10 @@ for indx, sublist in enumerate(tokens_slice):
     tokenize.tokens.append(my_node)
 
 
+#add ops
+#m_node = tokenize.create_node()
+#my_node.data = 'ops'
+#my_node.content =
 
 for indx, sublist in enumerate(tokenize.tokens_excepto):
     for indx2, nod in enumerate(tokenize.tokens):
@@ -201,10 +205,13 @@ for toke1 in tokenize.tokens:
 #print('characters: ', characters_slice)
 #print('keywords: ', keywords_slice)
 #print('tokens: ', tokens_slice)
+#print('here')
 #tokenize.see_nodes(tokenize.tokens)
 
 
 #experiment 1
+
+
 no_determinista = Afn.NFA()
 
 for nod in tokenize.tokens:
@@ -230,21 +237,17 @@ for nod in tokenize.tokens:
             current_nod.append(['*'])
    # print('nod_token: ',current_nod[1])
     nod.content = current_nod
-for nod in tokenize.tokens:
-    if nod.data == 'hexnumber ':
-        tokenize.tokens.remove(tokenize.tokens[1])
-        tokenize.tokens.remove(tokenize.tokens[2])
 
 #     nod.content = [nod.content[0], nod.content[1], ['.'], nod.content[0], nod.content[1]]
 for nod in tokenize.tokens:
-    #print(nod.exceptions)
-    if nod.exceptions[0] == 'keywords':
-        nod.exceptions = list(tokenize.keywords.keys())
-        for i in  range(len(nod.exceptions)):
+    if nod.exceptions != []:
+        if nod.exceptions[0] == 'keywords':
+            nod.exceptions = list(tokenize.keywords.keys())
+            for i in  range(len(nod.exceptions)):
 
-            nod.exceptions[i] = nod.exceptions[i][:-1]
+                nod.exceptions[i] = nod.exceptions[i][:-1]
 
-tokenize.see_nodes(tokenize.tokens)
+#tokenize.see_nodes(tokenize.tokens)
 
  #   new_tokens += current_nod
 #print('new_tokens: ', new_tokens)
@@ -514,30 +517,41 @@ def generate_afn(clon_exp):
 
 ##
 #find initial states tracks the initial state of each generated afn
+
 find_initial_states = []
+
 for nods in range(len(tokenize.tokens)):
     clon_exp = deepcopy(tokenize.tokens[nods].content)
     #call generate_afn twice as alone_or cannot be processed in the first run
     for i in range(2):
         generate_afn(clon_exp)
     if clon_exp[0][0] not in find_initial_states and clon_exp[0][0]!='[sign]digit':
+        #parse_node = no_determinista.create_node()
+        #parse_end_node = no_determinista.create_node()
+        #parse_node.neighbors['+-*/()'] = [parse_end_node.data]
+        #no_determinista.nodes.append(parse_node)
+        #no_determinista.nodes.append(parse_end_node)
         find_initial_states.append(clon_exp[0][0])
+        #find_initial_states.append(parse_node.data)
     #print(clon_exp)
 #no_determinista.see_tree()
 print('initial states found: ', find_initial_states)
 
-missing_concat = no_determinista.missing_concats()
-for indx, sublist in enumerate(clon_exp):
-    for nod in missing_concat:
-        if nod.data in sublist:
-            if indx+2 != len(clon_exp):
-                nod.neighbors['\0'] = [clon_exp[indx+2][0]]
-            else:
-                if '|' in clon_del_clon[indx+1] and len(clon_del_clon[indx+1]) == 3:
-                    nod.neighbors['\0'] = [clon_exp[indx + 1][0]]
+#missing_concat = no_determinista.missing_concats()
+#for indx, sublist in enumerate(clon_exp):
+ #   for nod in missing_concat:
+  #      if nod.data in sublist:
+   #         if indx+2 != len(clon_exp):
+    #            nod.neighbors['\0'] = [clon_exp[indx+2][0]]
+     #       else:
+      #          if '|' in clon_del_clon[indx+1] and len(clon_del_clon[indx+1]) == 3:
+       #             nod.neighbors['\0'] = [clon_exp[indx + 1][0]]
 
 
-#no_determinista.see_tree()
+no_determinista.see_tree()
+
+#dot = Digraph(comment='Automatas')
+
 find_terminal_states = []
 for nod in no_determinista.nodes:
     if len(nod.neighbors) == 0:
@@ -697,6 +711,8 @@ word_to_test = input("ingrese el archivo a probar: ")
 file_to_scan = open(word_to_test, 'r')
 lines2 = file_to_scan.readlines()
 file_to_scan.close()
+#mystr = '\t'.join([line.strip() for line in lines2])
+#print('mstr: ', mystr)
 word_to_test = lines2[0]
 #if len(word_to_test) == 0:
  #   if no_determinista.nodes[-1].data in initial_state:
@@ -724,8 +740,9 @@ while looper:
         if travel_move == []:
             for j in range(len(find_terminal_states)):
                 if find_terminal_states[j] in last_known:
+                    #print(tokenize.tokens[j].exceptions)
                     if word_to_test[:i] not in tokenize.tokens[j].exceptions:
-                        print('Found token: {}'.format(tokenize.tokens[j].data))
+                       # print('Found token: {}'.format(tokenize.tokens[j].data))
                         tokens_found.append([tokenize.tokens[j].data, ''.join(deepcopy(word_to_test[:i]))])
                     else:
                         print('Found keyword: {}'.format(word_to_test[:i]))
@@ -733,14 +750,22 @@ while looper:
                     break
             #check if char is defined in characters
             found_char_in_characters = False
+            ignore_error_parse = False
             for nod in tokenize.characters:
                 print(nod.content)
                 if word_to_test[i] in nod.content[0]:
                     found_char_in_characters = True
+                elif word_to_test[i] in ['+','-','*','/','(',')']:
+                    tokens_found.append(['op', word_to_test[i]])
+                    ignore_error_parse = True
+                    break
             if found_char_in_characters:
                 word_to_test = word_to_test[i:]
+
             else:
-                print('char not found, skipping over: ', word_to_test[i])
+                if not ignore_error_parse:
+                    print('char not found, skipping over: ', word_to_test[i])
+                ignore_error_parse = False
                 if word_to_test[i] == word_to_test[-1]:
                     looper = False
                     #break
@@ -766,9 +791,10 @@ while looper:
             for j in range(len(find_terminal_states)):
                # print('eclos: ', e_closure_travel)
                 if find_terminal_states[j] in e_closure_travel:
+                    #print(tokenize.tokens[j].exceptions)
                     if ''.join(word_to_test) not in tokenize.tokens[j].exceptions:
-                        print('Found token: {}'.format(tokenize.tokens[j].data))
-                        tokens_found.append([tokenize.tokens[j].data, ''.join(deepcopy(word_to_test[:i]))])
+                      #  print('Found token: {}'.format(tokenize.tokens[j].data))
+                        tokens_found.append([tokenize.tokens[j].data, ''.join(deepcopy(word_to_test[:i+1]))])
                     else:
                         print('Found keyword: {}'.format(''.join(word_to_test)))
                         keywords_found.append(''.join(word_to_test))
@@ -782,11 +808,19 @@ while looper:
     #word_to_test = ''
 save_state = e_closure_travel
 
+for i in range(50):
+    print('\n')
 print('all tokens found: ', tokens_found)
-print('all keywords found: ', keywords_found)
-#print('eclos: ', e_closure_travel)
-#if e_closure_travel != []:
-   # for nod in no_determinista.nodes:
-  #      if nod.data == e_closure_travel[0]:
- #           e_closure_travel = nod.neighbors.get('\0', ' ')
-#            break
+#print('all keywords found: ', keywords_found)
+
+parse_list = []
+start_pos = 0
+for indx, item in enumerate(tokens_found):
+    parse_list.append(item[1])
+
+#print(parse_list)
+
+aritmetica = standalone_parser.ariParser()
+aritmetica.parse_list = parse_list
+while aritmetica.start_pos < len(parse_list):
+    aritmetica.expr()
