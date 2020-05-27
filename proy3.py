@@ -5,5 +5,5 @@ from my_parser import *
 #for indx, line in enumerate(lines):
 #    my_parser.parse(line)
 
-jeje = AritmeticaCarasParser()
-jeje.parse('1:)2:(-4')
+jeje = AritmeticaParser()
+jeje.parse('(2*3)*(1+2)')

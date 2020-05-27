@@ -756,7 +756,7 @@ while looper:
                 if word_to_test[i] in nod.content[0]:
                     found_char_in_characters = True
                     #added tokens
-                elif word_to_test[i] in ['+','-','*','/','(',')']:
+                elif word_to_test[i] in ['+','-','*','/','(',')', '.']:
                     tokens_found.append(['op', word_to_test[i]])
                     ignore_error_parse = True
                     break
@@ -821,8 +821,21 @@ for indx, item in enumerate(tokens_found):
         parse_list.append(item[1])
 
 #print(parse_list)
+parse_list2 = []
+for indx, item in enumerate(parse_list):
+    if item == '.':
+        try:
+            flattempt = parse_list[indx-1] + item + parse_list[indx+1]
+            float(flattempt)
+            parse_list2.append(str(flattempt))
+        except:
+            raise Exception('wrong float format')
+    elif item in ['+','-','*','/','(',')']:
+        parse_list2.append(item)
 
-aritmetica = standalone_parser.ariParser()
-aritmetica.parse_list = parse_list
+print(parse_list2)
+
+dubaritmetica = standalone_parser.ariDoubleParser()
+dubaritmetica.parse_list = parse_list2
 #while aritmetica.start_pos < len(parse_list):
-aritmetica.expr()
+dubaritmetica.expr()

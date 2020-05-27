@@ -817,12 +817,21 @@ print('all tokens found: ', tokens_found)
 parse_list = []
 start_pos = 0
 for indx, item in enumerate(tokens_found):
-    if item[0] != 'ident ':
+    if item[1] in ['+','-','*','/','(',')']:
+        parse_list.append(item[1])
+    elif item[1] in ['0','1','2','3','4','5','6','7','8','9']:
+        if len(tokens_found[indx+1][1]) == 1 and tokens_found[indx+1][1] not in ['0','1','2','3','4','5','6','7','8','9','+','-','*','/','(',')']:
+            #print('uh: ',tokens_found[indx][1])
+            parse_list.append(tokens_found[indx][1] +deepcopy(tokens_found[indx+1][1]))
+            tokens_found[indx+1][1] = 'erased'
+        else:
+            parse_list.append(item[1])
+    elif len(item[1]) < 3:
         parse_list.append(item[1])
 
-#print(parse_list)
+print('list: ',parse_list)
 
-aritmetica = standalone_parser.ariParser()
+aritmetica = standalone_parser.hexParser()
 aritmetica.parse_list = parse_list
 #while aritmetica.start_pos < len(parse_list):
 aritmetica.expr()
