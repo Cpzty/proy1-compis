@@ -7,8 +7,10 @@ class ariParser():
         self.stat()
     
     def stat(self):
+        #while self.start_pos < len(self.parse_list):
         value = self.Expression()
         print('final val: ',value)
+        #print(self.start_pos)
     
     def plus_min(self):
         

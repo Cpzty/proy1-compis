@@ -767,7 +767,7 @@ while looper:
                 if not ignore_error_parse:
                     print('char not found, skipping over: ', word_to_test[i])
                 ignore_error_parse = False
-                if word_to_test[i] == word_to_test[-1]:
+                if word_to_test[i] == word_to_test[-1] and i == len(word_to_test)-1:
                     looper = False
                     #break
                 word_to_test = word_to_test[i+1:]

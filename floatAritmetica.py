@@ -767,7 +767,7 @@ while looper:
                 if not ignore_error_parse:
                     print('char not found, skipping over: ', word_to_test[i])
                 ignore_error_parse = False
-                if word_to_test[i] == word_to_test[-1]:
+                if word_to_test[i] == word_to_test[-1] and i == len(word_to_test)-1:
                     looper = False
                     #break
                 word_to_test = word_to_test[i+1:]
@@ -825,14 +825,23 @@ parse_list2 = []
 for indx, item in enumerate(parse_list):
     if item == '.':
         try:
-            flattempt = parse_list[indx-1] + item + parse_list[indx+1]
+            flattempt = deepcopy(parse_list[indx-1] + item + parse_list[indx+1])
             float(flattempt)
             parse_list2.append(str(flattempt))
+            parse_list[indx-1] = 'ignore'
+            parse_list[indx+ 1] = 'ignore'
         except:
             raise Exception('wrong float format')
     elif item in ['+','-','*','/','(',')']:
         parse_list2.append(item)
+    elif indx != len(parse_list)-1:
+        if item not in ['+','-','*','/','(',')','.','ignore'] and parse_list[indx+1] != '.':
+            parse_list2.append(item)
+    elif indx == len(parse_list)-1 and item != 'ignore':
+        parse_list2.append(item)
 
+
+print(parse_list)
 print(parse_list2)
 
 dubaritmetica = standalone_parser.ariDoubleParser()
